@@ -1,0 +1,3025 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Filmes do Dener, versão interativa</title>
+<style>
+  :root {
+    --bg1:#020617; --bg2:#071226; --bg3:#0b1730;
+    --panel:#0d1630; --panel2:#101d3b; --panel3:#13264a;
+    --line:rgba(255,255,255,.08); --line2:rgba(124,58,237,.25);
+    --text:#eef4ff; --muted:#a7b7d7;
+    --cyan:#22d3ee; --blue:#3b82f6; --violet:#8b5cf6; --pink:#ec4899;
+    --gold:#fbbf24; --green:#22c55e; --red:#fb7185;
+    --shadow:0 24px 50px rgba(0,0,0,.42);
+
+    --hero-grad1:rgba(59,130,246,.16); --hero-grad2:rgba(34,211,238,.10);
+    --search-bg:rgba(6,10,24,.78);
+    --chip-grad1:rgba(59,130,246,.16); --chip-grad2:rgba(34,211,238,.14);
+    --tag-grad1:rgba(59,130,246,.12); --tag-grad2:rgba(236,72,153,.10);
+    --secondary-btn1:rgba(139,92,246,.18); --secondary-btn2:rgba(236,72,153,.16);
+    --filter-grad1:rgba(59,130,246,.14); --filter-grad2:rgba(139,92,246,.12);
+    --panel-top:rgba(16,29,59,.98); --panel-bottom:rgba(8,18,40,.98);
+    --expand-top:rgba(255,255,255,.025); --expand-bottom:rgba(255,255,255,.015);
+  }
+
+  body.theme-netflix {
+    --bg1:#080808; --bg2:#111111; --bg3:#191919;
+    --panel:#151515; --panel2:#1b1b1b; --panel3:#202020;
+    --line:rgba(255,255,255,.10); --line2:rgba(229,9,20,.30);
+    --text:#f5f5f7; --muted:#c2c2c7;
+    --cyan:#ffffff; --blue:#e50914; --violet:#b91c1c; --pink:#ef4444;
+    --gold:#fbbf24; --green:#22c55e; --red:#fb7185;
+    --shadow:0 24px 60px rgba(0,0,0,.55);
+
+    --hero-grad1:rgba(229,9,20,.18); --hero-grad2:rgba(255,255,255,.05);
+    --search-bg:rgba(12,12,12,.88);
+    --chip-grad1:rgba(229,9,20,.22); --chip-grad2:rgba(255,255,255,.06);
+    --tag-grad1:rgba(229,9,20,.18); --tag-grad2:rgba(255,255,255,.05);
+    --secondary-btn1:rgba(255,255,255,.10); --secondary-btn2:rgba(229,9,20,.18);
+    --filter-grad1:rgba(255,255,255,.08); --filter-grad2:rgba(229,9,20,.16);
+    --panel-top:rgba(24,24,24,.98); --panel-bottom:rgba(12,12,12,.98);
+    --expand-top:rgba(255,255,255,.03); --expand-bottom:rgba(255,255,255,.02);
+  }
+
+  *{box-sizing:border-box}
+  html, body{max-width:100%; overflow-x:hidden;}
+  body.modal-open{overflow:hidden;}
+  body{
+    margin:0; font-family:Inter,Arial,Helvetica,sans-serif; color:var(--text);
+    background:
+      radial-gradient(circle at 15% 0%, rgba(34,211,238,.18), transparent 25%),
+      radial-gradient(circle at 100% 0%, rgba(139,92,246,.18), transparent 28%),
+      radial-gradient(circle at 50% 100%, rgba(236,72,153,.08), transparent 30%),
+      linear-gradient(180deg,var(--bg1),var(--bg2) 42%, var(--bg3));
+    min-height:100vh;
+    transition: background .3s ease, color .3s ease;
+  }
+  body.theme-netflix{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(229,9,20,.18), transparent 25%),
+      radial-gradient(circle at 100% 0%, rgba(255,255,255,.05), transparent 22%),
+      linear-gradient(180deg,var(--bg1),var(--bg2) 42%, var(--bg3));
+  }
+  .wrap{max-width:1020px; margin:0 auto; padding:16px 14px 48px; overflow-x:hidden}
+  .hero {
+    background:
+      linear-gradient(135deg, var(--hero-grad1), var(--hero-grad2)),
+      linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+    border:1px solid rgba(255,255,255,.09); border-radius:26px; padding:20px;
+    box-shadow:var(--shadow); margin-bottom:16px;
+    position:relative; overflow:hidden;
+  }
+  .hero:before{
+    content:""; position:absolute; inset:auto -40px -70px auto; width:180px; height:180px;
+    background:radial-gradient(circle, rgba(139,92,246,.35), transparent 65%);
+    pointer-events:auto; cursor:pointer;
+  }
+  body.theme-netflix .hero:before{
+    background:radial-gradient(circle, rgba(229,9,20,.30), transparent 65%);
+  }
+  .hero h1{margin:0 0 8px; font-size:clamp(28px,5vw,42px); line-height:1.05}
+  .hero p{margin:0; color:var(--muted); line-height:1.58}
+  .hint{margin-top:10px; font-size:13px; color:#dbeafe}
+  body.theme-netflix .hint{color:#f3f4f6}
+  .searchBox {position:sticky; top:0; z-index:20; margin:12px 0 16px; backdrop-filter: blur(12px);}
+  .searchInner {
+    background:var(--search-bg); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:10px;
+    box-shadow:var(--shadow);
+  }
+  .search {
+    width:100%; border:none; outline:none; padding:14px 16px; border-radius:14px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03)); color:var(--text); font-size:16px;
+  }
+  .toolbar {display:flex; gap:8px; overflow:auto; padding-top:10px; align-items:center}
+  .filterBtn, .themeBtn {
+    border:1px solid rgba(255,255,255,.08); background:linear-gradient(135deg, var(--filter-grad1), var(--filter-grad2)); color:#e0ecff;
+    padding:8px 12px; border-radius:999px; font-size:13px; white-space:nowrap;
+  }
+  body.theme-netflix .filterBtn, body.theme-netflix .themeBtn { color:#fff; }
+  .themeBtn.active{outline:2px solid rgba(255,255,255,.14)}
+  .stats {display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px;}
+  .stat {
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:12px;
+  }
+  .stat b{display:block; font-size:20px}
+  .cards{display:grid; gap:14px}
+  .card {
+  position:relative;
+
+    background:
+      linear-gradient(180deg, var(--panel-top), var(--panel-bottom));
+    border:1px solid rgba(255,255,255,.08); border-radius:24px; overflow:hidden;
+    box-shadow:var(--shadow);
+  }
+  .cardTop {
+    display:grid; grid-template-columns:88px minmax(0,1fr) auto; gap:16px; padding:16px;
+    align-items:start; cursor:pointer;
+  }
+  .posterWrap {
+    width:92px; min-width:92px; height:138px; border-radius:18px; overflow:hidden;
+    background:
+      linear-gradient(135deg, rgba(34,211,238,.22), rgba(139,92,246,.18)),
+      linear-gradient(180deg,#132444,#0c1630);
+    box-shadow:0 10px 24px rgba(0,0,0,.35); position:relative; border:1px solid rgba(255,255,255,.08);
+  }
+  body.theme-netflix .posterWrap{
+    background:
+      linear-gradient(135deg, rgba(229,9,20,.22), rgba(255,255,255,.08)),
+      linear-gradient(180deg,#231111,#120909);
+  }
+  .posterWrap img {width:100%; height:100%; object-fit:cover; display:block;}
+  .posterFallback {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:8px; font-weight:700; font-size:12px; color:#dbeafe;
+    background:
+      linear-gradient(180deg, rgba(11,20,40,.25), rgba(11,20,40,.55)),
+      radial-gradient(circle at top right, rgba(251,191,36,.35), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(34,211,238,.28), transparent 30%);
+  }
+  body.theme-netflix .posterFallback{
+    color:#fff;
+    background:
+      linear-gradient(180deg, rgba(30,10,10,.25), rgba(30,10,10,.62)),
+      radial-gradient(circle at top right, rgba(229,9,20,.40), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(255,255,255,.12), transparent 30%);
+  }
+  .meta{min-width:0; padding-top:2px}
+  .meta h2{margin:0 0 8px; font-size:22px; line-height:1.08; letter-spacing:-0.02em; word-break:break-word}
+  .sub{margin-bottom:10px}
+  .tags{margin-top:10px}
+  .sub{color:var(--muted); font-size:13px; line-height:1.45}
+  .tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; align-items:center}
+  .tag{
+    font-size:12px; border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:999px;
+    background:linear-gradient(135deg, var(--tag-grad1), var(--tag-grad2));
+  }
+  .rating-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:42px; height:32px; padding:0 10px; border-radius:10px;
+    font-size:13px; font-weight:800; color:#fff; border:1px solid rgba(255,255,255,.12);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+  }
+  .rating-L{background:#16a34a}
+  .rating-10{background:#2563eb}
+  .rating-12{background:#eab308; color:#111827}
+  .rating-14{background:#f97316}
+  .rating-16{background:#dc2626}
+  .rating-18{background:#111827}
+  .scorePane{
+    text-align:right;
+    min-width:130px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    justify-content:flex-start;
+    gap:6px;
+    padding-top:2px;
+  }
+  .quality {
+    font-size:32px; font-weight:900; line-height:1; color:white;
+    letter-spacing:-0.03em;
+  }
+  .qualityLabel {
+    font-size:13px; color:#dbeafe; margin-top:0; font-weight:700;
+  }
+  body.theme-netflix .qualityLabel{color:#fff}
+  .thermo {
+    height:13px; width:132px; max-width:100%;
+    background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden;
+    margin-top:2px; border:1px solid rgba(255,255,255,.06);
+  }
+  .fill {
+    height:100%; border-radius:999px;
+    background:linear-gradient(90deg, #22c55e 0%, #22d3ee 35%, #facc15 72%, #fb7185 100%);
+    box-shadow:0 0 16px rgba(255,255,255,.15) inset, 0 0 14px rgba(34,211,238,.18);
+  }
+  body.theme-netflix .fill{
+    background:linear-gradient(90deg, #22c55e 0%, #facc15 55%, #e50914 100%);
+    box-shadow:0 0 16px rgba(255,255,255,.10) inset, 0 0 14px rgba(229,9,20,.22);
+  }
+  .expand {
+    background:linear-gradient(180deg, var(--expand-top), var(--expand-bottom));
+    border-top:1px solid rgba(255,255,255,.08);
+    padding:0 14px; max-height:0; overflow:hidden; transition:max-height .35s ease;
+  }
+  .card.open .expand{max-height:1400px; padding:14px}
+  .grid2{display:grid; grid-template-columns:1fr; gap:14px}
+  .panel {
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+    border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px;
+  }
+  .panel h3{margin:0 0 10px; font-size:15px; color:#dbeafe}
+  body.theme-netflix .panel h3{color:#fff}
+  .bars{display:grid; gap:10px}
+  .barRow{display:grid; grid-template-columns:92px 1fr 28px; gap:10px; align-items:center}
+  .barRow span{font-size:13px; color:#dbeafe}
+  .meter{height:10px; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden}
+  .meter i{display:block; height:100%; background:linear-gradient(90deg, var(--cyan), var(--violet)); border-radius:999px}
+  body.theme-netflix .meter i{background:linear-gradient(90deg, #ffffff, #e50914)}
+  .synopsis{color:#e6ecff; line-height:1.62; font-size:14px}
+  .detailsGrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .mini{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025)); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px}
+  .mini small{display:block; color:var(--muted); margin-bottom:4px}
+  .actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+  a.btn {
+    display:inline-flex; align-items:center; justify-content:center; min-height:38px;
+    padding:9px 13px; border-radius:12px; text-decoration:none; font-weight:700;
+    color:white; background:linear-gradient(135deg,#2563eb,#06b6d4); box-shadow:0 12px 22px rgba(37,99,235,.25);
+  }
+  body.theme-netflix a.btn{
+    background:linear-gradient(135deg,#e50914,#991b1b);
+    box-shadow:0 12px 22px rgba(229,9,20,.28);
+  }
+  a.btn.secondary {
+    background:linear-gradient(135deg, var(--secondary-btn1), var(--secondary-btn2)); border:1px solid rgba(255,255,255,.08); box-shadow:none;
+  }
+  .streams{display:flex; flex-wrap:wrap; gap:8px}
+  .stream {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-height:34px; padding:7px 11px; border-radius:999px; text-decoration:none;
+    color:#e6f6ff; border:1px solid rgba(255,255,255,.08); font-size:12px; font-weight:700;
+    background:linear-gradient(135deg, var(--chip-grad1), var(--chip-grad2));
+  }
+  .stream.netflix{background:linear-gradient(135deg, rgba(239,68,68,.26), rgba(153,27,27,.22))}
+  .stream.max{background:linear-gradient(135deg, rgba(59,130,246,.26), rgba(29,78,216,.22))}
+  .stream.prime{background:linear-gradient(135deg, rgba(34,197,94,.24), rgba(6,182,212,.22))}
+  .stream.disney{background:linear-gradient(135deg, rgba(139,92,246,.26), rgba(59,130,246,.22))}
+  .stream.paramount{background:linear-gradient(135deg, rgba(14,165,233,.26), rgba(30,64,175,.22))}
+  .stream.mubi{background:linear-gradient(135deg, rgba(251,191,36,.25), rgba(245,158,11,.22))}
+  
+  .watchedOverlay{
+    position:absolute; inset:0;
+    background:rgba(0,0,0,.55);
+    backdrop-filter: blur(4px);
+    display:none; align-items:center; justify-content:center;
+    z-index:5;
+    text-align:center;
+    pointer-events:auto; cursor:pointer;
+  }
+  .card.watched .watchedOverlay{display:flex}
+  .watchedOverlay span{
+    font-size:18px; font-weight:800; color:#fff;
+    background:rgba(0,0,0,.6);
+    padding:10px 14px; border-radius:12px;
+    border:1px solid rgba(255,255,255,.2);
+  }
+  .watchToggle{
+    font-size:14px; font-weight:800; padding:10px 14px;
+    border-radius:16px; border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.05); color:#fff;
+    cursor:pointer;
+  }
+  .noteBox{
+    margin-top:10px;
+  }
+  .noteLabel{
+    display:block;
+    font-size:12px;
+    color:#cfe0ff;
+    margin-bottom:6px;
+  }
+  .noteArea{
+    width:100%;
+    min-height:78px;
+    resize:vertical;
+    border:none;
+    outline:none;
+    border-radius:14px;
+    padding:12px;
+    color:var(--text);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.08);
+    font-family:Inter,Arial,Helvetica,sans-serif;
+    font-size:13px;
+    line-height:1.45;
+  }
+  .saveRow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:8px;
+  }
+  .saveBtn{
+    font-size:12px; padding:7px 12px;
+    border-radius:999px; border:1px solid rgba(255,255,255,.1);
+    background:linear-gradient(135deg, rgba(34,211,238,.20), rgba(59,130,246,.18));
+    color:#fff; cursor:pointer;
+  }
+  body.theme-netflix .saveBtn{
+    background:linear-gradient(135deg, rgba(229,9,20,.25), rgba(255,255,255,.08));
+  }
+  .saveStatus{
+    font-size:12px;
+    color:#cfe0ff;
+    opacity:.9;
+  }
+  .reviewBadgeStars{display:flex; gap:4px; flex-wrap:wrap; margin-top:6px}
+  .reviewBadgeStars span{font-size:14px; color:rgba(255,255,255,.20)}
+  .reviewBadgeStars span.on{color:#facc15}
+  .reviewSummaryBox{margin-top:10px; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03))}
+  .reviewSummaryText{margin-top:8px; font-size:13px; color:#e6ecff; line-height:1.45; opacity:.95}
+  .ratingStars{
+    display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;
+  }
+  .star{
+    font-size:16px; cursor:pointer; opacity:.4;
+  }
+  .star.active{opacity:1}
+
+
+  .heroActions{display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px}
+  .heroBtn{
+    border:1px solid rgba(255,255,255,.10);
+    background:linear-gradient(135deg, rgba(34,211,238,.18), rgba(59,130,246,.18));
+    color:#fff; font-size:14px; font-weight:800; border-radius:16px; padding:12px 16px; cursor:pointer;
+    min-height:48px;
+  }
+  body.theme-netflix .heroBtn{
+    background:linear-gradient(135deg, rgba(229,9,20,.26), rgba(255,255,255,.08));
+  }
+  .modalBackdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.70); backdrop-filter:blur(10px);
+    display:none; align-items:flex-start; justify-content:center; padding:18px 12px; z-index:9998;
+    overflow-y:auto; overflow-x:hidden;
+  }
+  .modalBackdrop.open{display:flex}
+  .modal{
+    width:min(940px, calc(100vw - 16px)); border-radius:24px; overflow:hidden; max-width:100%;
+    background:linear-gradient(180deg, rgba(16,29,59,.98), rgba(8,18,40,.98));
+    border:1px solid rgba(255,255,255,.08); box-shadow:0 24px 70px rgba(0,0,0,.55);
+    max-height:92vh; overflow:auto;
+  }
+  body.theme-netflix .modal{
+    background:linear-gradient(180deg, rgba(24,24,24,.98), rgba(12,12,12,.98));
+  }
+  .modalHead{
+    position:sticky; top:0; z-index:2;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:16px 18px; background:rgba(8,15,29,.92); border-bottom:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(8px);
+  }
+  body.theme-netflix .modalHead{background:rgba(12,12,12,.94)}
+  .modalTitle{font-size:22px; font-weight:800}
+  .closeBtn{
+    width:40px; height:40px; border-radius:999px; border:1px solid rgba(255,255,255,.10);
+    background:rgba(255,255,255,.05); color:#fff; font-size:18px; cursor:pointer;
+  }
+  .modalBody{padding:16px; overflow-x:hidden} 
+  .modal{
+    scrollbar-width:thin;
+  }
+  .addGrid{display:grid; grid-template-columns:1fr; gap:14px; min-width:0}
+  @media (min-width:900px){ .addGrid{grid-template-columns:1.05fr .95fr} }
+  .formPanel{
+    min-width:0;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+    border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px;
+  }
+  .formPanel h3{margin:0 0 12px; font-size:16px; color:#dbeafe}
+  body.theme-netflix .formPanel h3{color:#fff}
+  .field{display:grid; gap:6px; margin-bottom:10px}
+  .field label{font-size:12px; color:#dbeafe}
+  .field input, .field textarea, .field select{
+    width:100%; max-width:100%; border:none; outline:none; border-radius:12px; padding:11px 12px;
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    color:var(--text); border:1px solid rgba(255,255,255,.08); font-size:14px;
+    font-family:Inter,Arial,Helvetica,sans-serif;
+  }
+  .field textarea{min-height:110px; resize:vertical}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+  .smallHelp{font-size:12px; color:var(--muted); line-height:1.5}
+  .candidateList{display:grid; gap:8px; margin-top:10px}
+  .candidateBtn{
+    text-align:left; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px 12px;
+    background:linear-gradient(135deg, rgba(59,130,246,.12), rgba(139,92,246,.10)); color:#fff; cursor:pointer;
+  }
+  body.theme-netflix .candidateBtn{
+    background:linear-gradient(135deg, rgba(229,9,20,.18), rgba(255,255,255,.05));
+  }
+  .previewCard{
+    display:grid; grid-template-columns:100px minmax(0,1fr); gap:12px; align-items:start;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:12px;
+  }
+  .previewPoster{
+    width:100px; height:150px; border-radius:14px; object-fit:cover; background:#111827; border:1px solid rgba(255,255,255,.08);
+  }
+  .inlineActions{display:flex; gap:8px; flex-wrap:wrap}
+  .primaryAdd{
+    border:none; border-radius:12px; padding:11px 15px; font-weight:800; color:#fff; cursor:pointer;
+    background:linear-gradient(135deg, #2563eb, #06b6d4); box-shadow:0 12px 22px rgba(37,99,235,.25);
+  }
+  body.theme-netflix .primaryAdd{background:linear-gradient(135deg,#e50914,#991b1b); box-shadow:0 12px 22px rgba(229,9,20,.28)}
+  .secondaryAdd{
+    border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:11px 15px; color:#fff; cursor:pointer;
+    background:linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+  }
+  .positionBadge{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
+    background:linear-gradient(135deg, rgba(34,211,238,.16), rgba(59,130,246,.14)); border:1px solid rgba(255,255,255,.08);
+    font-size:13px; color:#fff; font-weight:700;
+  }
+  body.theme-netflix .positionBadge{background:linear-gradient(135deg, rgba(229,9,20,.22), rgba(255,255,255,.06))}
+
+
+  .ratePromptBackdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(8px);
+    display:none; align-items:center; justify-content:center; padding:18px; z-index:120;
+  }
+  .ratePromptBackdrop.open{display:flex}
+  .ratePrompt{
+    width:min(420px, 100%);
+    border-radius:24px;
+    background:linear-gradient(180deg, rgba(16,29,59,.98), rgba(8,18,40,.98));
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 24px 70px rgba(0,0,0,.55);
+    padding:18px;
+    text-align:center;
+  }
+  body.theme-netflix .ratePrompt{
+    background:linear-gradient(180deg, rgba(24,24,24,.98), rgba(12,12,12,.98));
+  }
+  .ratePromptTitle{font-size:22px; font-weight:800; margin-bottom:8px}
+  .ratePromptText{font-size:14px; color:var(--muted); line-height:1.55; margin-bottom:14px}
+  .ratePromptStars{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:10px 0 14px}
+  .ratePromptStar{
+    width:40px; height:40px; border-radius:999px; border:1px solid rgba(255,255,255,.08);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:900;
+    background:linear-gradient(135deg, rgba(59,130,246,.14), rgba(139,92,246,.12));
+    color:#fff;
+    transition:transform .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease, opacity .15s ease;
+    opacity:.48;
+  }
+  body.theme-netflix .ratePromptStar{
+    background:linear-gradient(135deg, rgba(229,9,20,.20), rgba(255,255,255,.06));
+  }
+  .ratePromptStar.active{outline:2px solid rgba(255,255,255,.14); background:linear-gradient(135deg,#facc15,#f59e0b); color:#111827; opacity:1; box-shadow:0 0 0 4px rgba(250,204,21,.12), 0 10px 20px rgba(245,158,11,.18)}
+  .ratePromptStar:hover{transform:scale(1.06)}
+  .rateCommentWrap{margin:12px 0 14px; text-align:left}
+  .rateCommentWrap label{display:block; font-size:12px; color:#dbeafe; margin-bottom:6px}
+  .rateComment{width:100%; min-height:90px; resize:vertical; border:none; outline:none; border-radius:14px; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.08); color:var(--text); font-family:Inter,Arial,Helvetica,sans-serif; font-size:13px; line-height:1.45}
+  .charCount{margin-top:6px; font-size:12px; color:var(--muted); text-align:right}
+  .ratePromptActions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+
+
+  .gptCodeBox{
+    margin-bottom:12px; padding:12px; border-radius:16px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+  }
+  .gptCodeArea{
+    width:100%; min-height:150px; resize:vertical; border:none; outline:none;
+    border-radius:14px; padding:12px; color:var(--text);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.08); font-family:Inter,Arial,Helvetica,sans-serif;
+    font-size:13px; line-height:1.45;
+  }
+  .progressWrap{
+    margin-top:10px; display:none;
+  }
+  .progressTrack{
+    width:100%; height:10px; border-radius:999px; overflow:hidden;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.06);
+  }
+  .progressFill{
+    width:0%; height:100%;
+    background:linear-gradient(90deg, #22d3ee, #3b82f6, #8b5cf6);
+    transition:width .18s ease;
+  }
+  body.theme-netflix .progressFill{
+    background:linear-gradient(90deg, #ffffff, #e50914);
+  }
+  .watchedOverlay span{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; text-align:center; padding:0 10px; max-width:100%;
+  }
+  .overlayMiniStars{
+    display:flex; flex-wrap:nowrap; gap:2px; justify-content:center; align-items:center;
+    white-space:nowrap;
+  }
+  .overlayMiniStars span{
+    font-size:12px; line-height:1; color:rgba(255,255,255,.22);
+  }
+  .overlayMiniStars span.on{color:#facc15}
+
+
+  .topTabs{
+    display:flex; gap:10px; margin:0 0 16px; overflow:auto; padding-bottom:2px;
+  }
+  .tabBtn{
+    flex:1 1 0;
+    min-width:140px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg, rgba(59,130,246,.10), rgba(139,92,246,.08));
+    color:#fff; padding:12px 16px; border-radius:16px; font-size:15px; font-weight:800; white-space:nowrap; cursor:pointer;
+    text-align:center;
+  }
+  body.theme-netflix .tabBtn{
+    background:linear-gradient(135deg, rgba(229,9,20,.18), rgba(255,255,255,.05));
+  }
+  .tabBtn.active{outline:2px solid rgba(255,255,255,.14); background:linear-gradient(135deg, rgba(229,9,20,.26), rgba(255,255,255,.06)); box-shadow:0 10px 20px rgba(0,0,0,.18)}
+  .filterSection{
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+    border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:12px; margin-bottom:14px;
+  }
+  .filterHeader{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    cursor:pointer; user-select:none;
+  }
+  .filterTitle{font-size:15px; font-weight:900; margin:0}
+  .filterChevron{
+    width:34px; height:34px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); font-size:18px; transition:transform .2s ease;
+  }
+  .filterBody{display:none; margin-top:12px}
+  .filterSection.open .filterBody{display:block}
+  .filterSection.open .filterChevron{transform:rotate(180deg)}
+  .rangeGrid{display:grid; grid-template-columns:1fr; gap:10px}
+  .rangeRow{display:grid; grid-template-columns:100px 1fr 36px; gap:10px; align-items:center}
+  .rangeRow label{font-size:13px; color:#dbeafe}
+  .rangeRow input[type="range"]{width:100%}
+  .streamLogo{
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .streamDot{
+    width:10px; height:10px; border-radius:999px; display:inline-block;
+  }
+  .deleteBtn{
+    border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:9px 12px;
+    color:#fff; cursor:pointer; background:linear-gradient(135deg, rgba(239,68,68,.18), rgba(127,29,29,.16));
+  }
+  .confirmDeleteBackdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(10px);
+    display:none; align-items:center; justify-content:center; padding:18px; z-index:10000;
+  }
+  .confirmDeleteBackdrop.open{display:flex}
+  .confirmDelete{
+    width:min(420px,100%); border-radius:22px; padding:18px;
+    background:linear-gradient(180deg, rgba(16,29,59,.98), rgba(8,18,40,.98));
+    border:1px solid rgba(255,255,255,.08); box-shadow:0 24px 70px rgba(0,0,0,.55);
+  }
+  body.theme-netflix .confirmDelete{
+    background:linear-gradient(180deg, rgba(24,24,24,.98), rgba(12,12,12,.98));
+  }
+  .overlayMiniStars{
+    display:flex; flex-wrap:nowrap; gap:3px; justify-content:center; align-items:center; white-space:nowrap; overflow:hidden;
+    max-width:100%;
+  }
+  .overlayMiniStars span{font-size:10px; line-height:1; color:rgba(255,255,255,.22)}
+  .overlayMiniStars span.on{color:#facc15}
+
+
+  .actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:14px;
+    align-items:stretch;
+  }
+  .actions .watchToggle{
+    grid-column:1 / -1;
+    justify-self:start;
+  }
+  .actions .btn,
+  .actions .secondaryAdd,
+  .actions .deleteBtn{
+    min-height:52px;
+    border-radius:16px;
+    font-weight:800;
+    font-size:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:12px 14px;
+  }
+  .actions .secondaryAdd{
+    background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+  }
+  .actions .deleteBtn{
+    background:linear-gradient(135deg, rgba(239,68,68,.18), rgba(127,29,29,.16));
+  }
+  .userScoreThermo{
+    margin-top:8px;
+  }
+  .userScoreLabel{
+    font-size:13px;
+    color:#f8fafc;
+    font-weight:800;
+    text-align:center;
+    margin-bottom:8px;
+  }
+  .userScoreBar{
+    width:min(280px, 100%);
+    margin:0 auto;
+    height:12px;
+    border-radius:999px;
+    overflow:hidden;
+    background:rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .userScoreFill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #eab308 70%, #22c55e 100%);
+    border-radius:999px;
+    box-shadow:0 0 18px rgba(245,158,11,.18);
+  }
+  .userScoreWow{
+    margin-top:8px;
+    font-size:12px;
+    color:#fde68a;
+    font-weight:800;
+    text-align:center;
+  }
+  .watchedOverlay span{
+    gap:8px;
+  }
+  .watchedOverlay .overlayTitle{
+    font-size:15px;
+    letter-spacing:.04em;
+    font-weight:900;
+  }
+  .watchedOverlay .overlayNote{
+    font-size:11px;
+    opacity:.92;
+  }
+  .watchedOverlay .overlayComment{
+    font-size:11px;
+    opacity:.96;
+    max-width:220px;
+    line-height:1.3;
+    text-align:center;
+  }
+  .overlayThermo{
+    width:min(240px, 100%);
+    height:10px;
+    border-radius:999px;
+    overflow:hidden;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .overlayThermoFill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #eab308 70%, #22c55e 100%);
+    border-radius:999px;
+  }
+  .rateSliderWrap{
+    margin:14px 0 8px;
+  }
+  .rateSliderValue{
+    text-align:center;
+    font-size:28px;
+    font-weight:900;
+    color:#fff;
+    letter-spacing:-.03em;
+    margin-bottom:10px;
+  }
+  .rateSliderHint{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+    margin-top:8px;
+  }
+  .rateSlider{
+    width:100%;
+    appearance:none;
+    height:14px;
+    border-radius:999px;
+    outline:none;
+    background:linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #eab308 70%, #22c55e 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .rateSlider::-webkit-slider-thumb{
+    appearance:none;
+    width:28px;
+    height:28px;
+    border-radius:999px;
+    background:#fff;
+    border:3px solid rgba(229,9,20,.8);
+    box-shadow:0 8px 18px rgba(0,0,0,.35);
+  }
+  .rateSlider::-moz-range-thumb{
+    width:28px;
+    height:28px;
+    border-radius:999px;
+    background:#fff;
+    border:3px solid rgba(229,9,20,.8);
+    box-shadow:0 8px 18px rgba(0,0,0,.35);
+  }
+  .rateScale{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:8px;
+  }
+  .ratePerfect{
+    margin-top:10px;
+    text-align:center;
+    font-weight:900;
+    color:#fde68a;
+    display:none;
+  }
+  .ratePerfect.show{
+    display:block;
+    animation:popIn .35s ease;
+  }
+  @keyframes popIn{
+    0%{transform:scale(.92); opacity:0}
+    100%{transform:scale(1); opacity:1}
+  }
+  @media (max-width: 560px){
+    .actions{
+      grid-template-columns:1fr;
+    }
+    .actions .btn,
+    .actions .secondaryAdd,
+    .actions .deleteBtn{
+      width:100%;
+    }
+    .userScoreBar,
+    .overlayThermo{
+      width:100%;
+      max-width:220px;
+    }
+  }
+
+
+  body.theme-apple {
+    --bg1:#050505; --bg2:#0b0b0c; --bg3:#111214;
+    --panel:#111214; --panel2:#16171a; --panel3:#1c1d21;
+    --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.18);
+    --text:#f5f5f7; --muted:#b9bcc4;
+    --cyan:#d1d5db; --blue:#93c5fd; --violet:#a78bfa; --pink:#f9a8d4;
+    --gold:#fbbf24; --green:#22c55e; --red:#fb7185;
+    --shadow:0 24px 60px rgba(0,0,0,.48);
+    --hero-grad1:rgba(255,255,255,.06); --hero-grad2:rgba(148,163,184,.05);
+    --search-bg:rgba(16,16,18,.92);
+    --chip-grad1:rgba(255,255,255,.08); --chip-grad2:rgba(148,163,184,.08);
+    --tag-grad1:rgba(255,255,255,.08); --tag-grad2:rgba(148,163,184,.06);
+    --secondary-btn1:rgba(255,255,255,.08); --secondary-btn2:rgba(148,163,184,.10);
+    --filter-grad1:rgba(255,255,255,.08); --filter-grad2:rgba(148,163,184,.08);
+    --panel-top:rgba(22,23,26,.98); --panel-bottom:rgba(14,15,18,.98);
+    --expand-top:rgba(255,255,255,.025); --expand-bottom:rgba(255,255,255,.015);
+  }
+  body.theme-hbomax {
+    --bg1:#06030d; --bg2:#10071f; --bg3:#170b2b;
+    --panel:#180c2d; --panel2:#20103d; --panel3:#27144a;
+    --line:rgba(255,255,255,.10); --line2:rgba(139,92,246,.28);
+    --text:#f6f2ff; --muted:#d0c7f8;
+    --cyan:#c4b5fd; --blue:#8b5cf6; --violet:#a855f7; --pink:#ec4899;
+    --gold:#fbbf24; --green:#22c55e; --red:#fb7185;
+    --shadow:0 24px 60px rgba(0,0,0,.55);
+    --hero-grad1:rgba(139,92,246,.18); --hero-grad2:rgba(236,72,153,.08);
+    --search-bg:rgba(19,9,35,.90);
+    --chip-grad1:rgba(139,92,246,.20); --chip-grad2:rgba(236,72,153,.10);
+    --tag-grad1:rgba(139,92,246,.16); --tag-grad2:rgba(236,72,153,.08);
+    --secondary-btn1:rgba(139,92,246,.16); --secondary-btn2:rgba(236,72,153,.10);
+    --filter-grad1:rgba(139,92,246,.16); --filter-grad2:rgba(236,72,153,.10);
+    --panel-top:rgba(32,16,61,.98); --panel-bottom:rgba(15,7,31,.98);
+    --expand-top:rgba(255,255,255,.03); --expand-bottom:rgba(255,255,255,.02);
+  }
+  body.theme-disney {
+    --bg1:#041120; --bg2:#071a31; --bg3:#0d2544;
+    --panel:#0e1d35; --panel2:#102541; --panel3:#153054;
+    --line:rgba(255,255,255,.10); --line2:rgba(96,165,250,.26);
+    --text:#eef6ff; --muted:#bad4f1;
+    --cyan:#7dd3fc; --blue:#60a5fa; --violet:#818cf8; --pink:#c084fc;
+    --gold:#fbbf24; --green:#22c55e; --red:#fb7185;
+    --shadow:0 24px 55px rgba(0,0,0,.45);
+    --hero-grad1:rgba(96,165,250,.18); --hero-grad2:rgba(125,211,252,.10);
+    --search-bg:rgba(5,20,39,.90);
+    --chip-grad1:rgba(96,165,250,.16); --chip-grad2:rgba(125,211,252,.12);
+    --tag-grad1:rgba(96,165,250,.14); --tag-grad2:rgba(129,140,248,.10);
+    --secondary-btn1:rgba(96,165,250,.12); --secondary-btn2:rgba(129,140,248,.10);
+    --filter-grad1:rgba(96,165,250,.14); --filter-grad2:rgba(125,211,252,.10);
+    --panel-top:rgba(16,37,65,.98); --panel-bottom:rgba(7,26,49,.98);
+    --expand-top:rgba(255,255,255,.028); --expand-bottom:rgba(255,255,255,.018);
+  }
+  body.theme-prime {
+    --bg1:#05151c; --bg2:#0a2029; --bg3:#112a35;
+    --panel:#10242d; --panel2:#132c37; --panel3:#173642;
+    --line:rgba(255,255,255,.10); --line2:rgba(34,211,238,.24);
+    --text:#effcff; --muted:#b8e5ec;
+    --cyan:#22d3ee; --blue:#38bdf8; --violet:#0ea5e9; --pink:#67e8f9;
+    --gold:#fbbf24; --green:#22c55e; --red:#fb7185;
+    --shadow:0 24px 55px rgba(0,0,0,.45);
+    --hero-grad1:rgba(34,211,238,.16); --hero-grad2:rgba(56,189,248,.10);
+    --search-bg:rgba(7,21,27,.92);
+    --chip-grad1:rgba(34,211,238,.14); --chip-grad2:rgba(56,189,248,.10);
+    --tag-grad1:rgba(34,211,238,.12); --tag-grad2:rgba(56,189,248,.08);
+    --secondary-btn1:rgba(34,211,238,.12); --secondary-btn2:rgba(56,189,248,.08);
+    --filter-grad1:rgba(34,211,238,.12); --filter-grad2:rgba(56,189,248,.08);
+    --panel-top:rgba(19,44,55,.98); --panel-bottom:rgba(10,32,41,.98);
+    --expand-top:rgba(255,255,255,.026); --expand-bottom:rgba(255,255,255,.016);
+  }
+  body.theme-cinema {
+    --bg1:#0b0905; --bg2:#17120a; --bg3:#21170b;
+    --panel:#1d150b; --panel2:#241a0c; --panel3:#2e210e;
+    --line:rgba(255,255,255,.10); --line2:rgba(251,191,36,.24);
+    --text:#fff8e8; --muted:#e8d8b0;
+    --cyan:#fde68a; --blue:#fbbf24; --violet:#f59e0b; --pink:#fcd34d;
+    --gold:#fbbf24; --green:#22c55e; --red:#fb7185;
+    --shadow:0 24px 55px rgba(0,0,0,.48);
+    --hero-grad1:rgba(251,191,36,.16); --hero-grad2:rgba(253,230,138,.08);
+    --search-bg:rgba(18,12,6,.92);
+    --chip-grad1:rgba(251,191,36,.16); --chip-grad2:rgba(253,230,138,.10);
+    --tag-grad1:rgba(251,191,36,.12); --tag-grad2:rgba(253,230,138,.08);
+    --secondary-btn1:rgba(251,191,36,.12); --secondary-btn2:rgba(253,230,138,.08);
+    --filter-grad1:rgba(251,191,36,.12); --filter-grad2:rgba(253,230,138,.08);
+    --panel-top:rgba(36,26,12,.98); --panel-bottom:rgba(23,18,10,.98);
+    --expand-top:rgba(255,255,255,.03); --expand-bottom:rgba(255,255,255,.02);
+  }
+
+  .topActions{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px}
+  .themeLauncher{
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg, var(--filter-grad1), var(--filter-grad2));
+    color:#fff; min-height:44px; border-radius:14px; padding:10px 14px; font-size:14px; font-weight:800;
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer; white-space:nowrap;
+  }
+  .streamChips{display:flex; gap:8px; overflow:auto; padding:2px 0 4px; scrollbar-width:none}
+  .streamChips::-webkit-scrollbar{display:none}
+  .streamChip{
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg, var(--filter-grad1), var(--filter-grad2));
+    color:#fff; min-height:42px; border-radius:999px; padding:10px 14px; font-size:13px; font-weight:800;
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap; cursor:pointer;
+  }
+  .streamLogoBadge{
+    width:18px; height:18px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center;
+    color:#fff; font-size:10px; font-weight:900; flex:0 0 auto;
+  }
+
+  .themeBackdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(10px);
+    display:none; align-items:flex-end; justify-content:center; padding:12px; z-index:10001;
+  }
+  .themeBackdrop.open{display:flex}
+  .themeSheet{
+    width:min(620px, 100%); border-radius:24px 24px 18px 18px;
+    background:linear-gradient(180deg, rgba(16,29,59,.98), rgba(8,18,40,.98));
+    border:1px solid rgba(255,255,255,.08); box-shadow:0 24px 70px rgba(0,0,0,.55);
+    padding:16px;
+  }
+  body.theme-netflix .themeSheet,
+  body.theme-apple .themeSheet,
+  body.theme-hbomax .themeSheet,
+  body.theme-disney .themeSheet,
+  body.theme-prime .themeSheet,
+  body.theme-cinema .themeSheet{
+    background:linear-gradient(180deg, var(--panel-top), var(--panel-bottom));
+  }
+  .themeGrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
+  .themeCard{
+    border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); cursor:pointer;
+    color:#fff;
+  }
+  .themePreview{height:56px; border-radius:14px; margin-bottom:10px; border:1px solid rgba(255,255,255,.06)}
+  .themeName{font-weight:800; font-size:14px}
+  .themeNote{font-size:12px; color:var(--muted); margin-top:4px}
+
+  .actions{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; align-items:stretch;
+  }
+  .actions .watchToggle{grid-column:1 / -1; justify-self:start}
+  .actions .btn,
+  .actions .secondaryAdd,
+  .actions .deleteBtn{
+    min-height:52px; border-radius:16px; font-weight:800; font-size:15px;
+    display:flex; align-items:center; justify-content:center; text-align:center; padding:12px 14px;
+  }
+
+  @media (max-width:560px){
+    .topActions{align-items:flex-start; flex-direction:column}
+    .themeLauncher{width:100%; justify-content:center}
+    .themeGrid{grid-template-columns:1fr}
+    .actions{grid-template-columns:1fr}
+    .actions .btn,.actions .secondaryAdd,.actions .deleteBtn{width:100%}
+  }
+
+
+  .topActions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin-top:10px;
+  }
+  .themeLauncher{
+    width:100%;
+    justify-content:center;
+    min-height:52px;
+    border-radius:18px;
+    font-size:16px;
+    font-weight:900;
+    background:linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+  }
+  .streamGrid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  .streamChip{
+    width:100%;
+    justify-content:flex-start;
+    min-height:48px;
+    border-radius:18px;
+    font-size:14px;
+    overflow:hidden;
+  }
+  .streamLogoBadge{
+    min-width:20px;
+    width:20px;
+    height:20px;
+  }
+  .sortBar{
+    display:flex;
+    justify-content:flex-end;
+    margin:8px 0 10px;
+  }
+  .sortLauncher{
+    min-height:46px;
+    padding:10px 14px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg, var(--filter-grad1), var(--filter-grad2));
+    color:#fff;
+    font-size:14px;
+    font-weight:800;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+  }
+  .heroActions{
+    display:grid;
+    grid-template-columns:1fr 1fr 1.4fr;
+    gap:10px;
+    margin:0 0 16px;
+  }
+  .heroActions .themeBtn,
+  .heroActions .heroBtn{
+    width:100%;
+    min-height:52px;
+    border-radius:18px;
+    font-size:15px;
+    font-weight:900;
+    justify-content:center;
+  }
+  .stats{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+  .stat{
+    min-height:118px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    overflow:hidden;
+    position:relative;
+  }
+  .stat b{
+    font-size:18px;
+    line-height:1.15;
+    margin-top:6px;
+    overflow-wrap:anywhere;
+  }
+  .stat.topStat{
+    border-color:rgba(251,191,36,.32);
+    box-shadow:0 0 0 1px rgba(251,191,36,.12), 0 18px 40px rgba(0,0,0,.24);
+    background:
+      radial-gradient(circle at top right, rgba(251,191,36,.16), transparent 35%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  }
+  .stat.topStat::after{
+    content:"🏆";
+    position:absolute;
+    top:10px;
+    right:12px;
+    font-size:18px;
+    opacity:.9;
+  }
+  .stat.familyStat{
+    background:
+      radial-gradient(circle at top right, rgba(34,197,94,.12), transparent 35%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  }
+  .stat.suspenseStat{
+    background:
+      radial-gradient(circle at top right, rgba(239,68,68,.12), transparent 35%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  }
+  .stat.mysteryStat{
+    background:
+      radial-gradient(circle at top right, rgba(168,85,247,.14), transparent 35%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  }
+  .stat.realStat{
+    background:
+      radial-gradient(circle at top right, rgba(245,158,11,.12), transparent 35%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  }
+  .gptPrimaryLink{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:52px;
+    width:100%;
+    border-radius:18px;
+    text-decoration:none;
+    font-size:15px;
+    font-weight:900;
+    color:#fff;
+    border:1px solid rgba(251,191,36,.28);
+    background:linear-gradient(135deg, rgba(251,191,36,.20), rgba(236,72,153,.12));
+    box-shadow:0 12px 30px rgba(251,191,36,.10);
+  }
+  .gptPrimaryLink span{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .inlineActions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .formGrid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .formGrid3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:12px;
+  }
+  .field.compact input,
+  .field.compact select{
+    min-height:54px;
+  }
+  .field textarea{
+    min-height:128px;
+  }
+  .themeSheet{
+    max-height:min(82vh, 760px);
+    overflow:auto;
+    padding-top:22px;
+  }
+  .themeGrid{
+    align-items:start;
+  }
+  .themeCard{
+    text-align:left;
+  }
+  .themePreview{
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 10px 25px rgba(0,0,0,.18);
+  }
+  body.theme-apple .hero,
+  body.theme-apple .card,
+  body.theme-apple .stat,
+  body.theme-apple .formPanel,
+  body.theme-apple .panel,
+  body.theme-apple .searchInner,
+  body.theme-apple .filterSection,
+  body.theme-apple .modal,
+  body.theme-apple .themeSheet{
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 35%),
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  }
+  body.theme-apple .heroBtn,
+  body.theme-apple .themeBtn,
+  body.theme-apple .themeLauncher,
+  body.theme-apple .streamChip,
+  body.theme-apple .sortLauncher,
+  body.theme-apple .filterBtn,
+  body.theme-apple .tabBtn{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.16), transparent 45%),
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 10px 24px rgba(0,0,0,.16);
+  }
+  body.theme-netflix .heroBtn,
+  body.theme-netflix .primaryAdd,
+  body.theme-netflix a.btn{
+    background:linear-gradient(135deg, #b20710, #e50914);
+  }
+  body.theme-hbomax .heroBtn,
+  body.theme-hbomax .primaryAdd,
+  body.theme-hbomax a.btn{
+    background:linear-gradient(135deg, #5b21b6, #9333ea);
+  }
+  body.theme-disney .heroBtn,
+  body.theme-disney .primaryAdd,
+  body.theme-disney a.btn{
+    background:linear-gradient(135deg, #1d4ed8, #60a5fa);
+  }
+  body.theme-prime .heroBtn,
+  body.theme-prime .primaryAdd,
+  body.theme-prime a.btn{
+    background:linear-gradient(135deg, #0891b2, #22d3ee);
+  }
+  body.theme-cinema .heroBtn,
+  body.theme-cinema .primaryAdd,
+  body.theme-cinema a.btn{
+    background:linear-gradient(135deg, #b45309, #fbbf24);
+    color:#111827;
+  }
+  .sortBackdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(10px);
+    display:none; align-items:flex-end; justify-content:center; padding:12px; z-index:10001;
+  }
+  .sortBackdrop.open{display:flex}
+  .sortSheet{
+    width:min(560px,100%);
+    border-radius:24px 24px 18px 18px;
+    background:linear-gradient(180deg, var(--panel-top), var(--panel-bottom));
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 24px 70px rgba(0,0,0,.55);
+    padding:16px;
+  }
+  .sortOptions{
+    display:grid;
+    gap:10px;
+    margin-top:12px;
+  }
+  .sortOption{
+    min-height:52px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg, var(--filter-grad1), var(--filter-grad2));
+    color:#fff;
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .sortOption small{
+    color:var(--muted);
+    font-weight:600;
+  }
+  @media (max-width:560px){
+    .streamGrid{grid-template-columns:1fr 1fr}
+    .heroActions{grid-template-columns:1fr 1fr; }
+    .heroActions .heroBtn{grid-column:1 / -1}
+    .stats{grid-template-columns:1fr 1fr}
+    .formGrid2,.formGrid3{grid-template-columns:1fr}
+    .stat{min-height:108px}
+    .stat b{font-size:16px}
+  }
+
+.footer{margin-top:16px; color:var(--muted); font-size:12px; line-height:1.6}
+  @media (max-width: 560px){
+    .wrap{padding:12px 12px 42px}
+    .hero{padding:18px; border-radius:22px}
+    .topTabs{display:grid; grid-template-columns:1fr 1fr; gap:10px; overflow:visible}
+    .tabBtn{min-width:0; width:100%; border-radius:16px; padding:12px 10px; font-size:14px}
+    .toolbar{overflow:auto}
+    .filterSection{padding:12px}
+    .cardTop{
+      grid-template-columns:92px minmax(0,1fr);
+      gap:14px;
+      padding:14px;
+    }
+    .posterWrap{
+      width:92px; min-width:92px; height:138px;
+      border-radius:18px;
+    }
+    .meta h2{
+      font-size:19px;
+      line-height:1.08;
+      margin-bottom:8px;
+    }
+    .sub{
+      font-size:12px;
+      line-height:1.45;
+      margin-bottom:10px;
+    }
+    .tags{
+      gap:6px;
+      margin-top:8px;
+    }
+    .tag{
+      font-size:11px;
+      padding:5px 9px;
+    }
+    .scorePane{
+      grid-column:2;
+      text-align:left;
+      min-width:0;
+      display:grid;
+      grid-template-columns:auto 1fr;
+      grid-template-areas:
+        "score label"
+        "bar bar";
+      gap:8px 10px;
+      align-items:center;
+      width:100%;
+      margin-top:10px;
+      padding-top:0;
+    }
+    .quality{
+      font-size:20px;
+      grid-area:score;
+      line-height:1;
+    }
+    .qualityLabel{
+      margin-top:0;
+      grid-area:label;
+      white-space:nowrap;
+      font-size:12px;
+    }
+    .thermo{
+      margin-top:0;
+      grid-area:bar;
+      width:100%;
+      min-width:0;
+      height:12px;
+      display:block;
+    }
+    .modalBackdrop{
+      padding:10px 8px;
+      align-items:flex-start;
+    }
+    .modal{
+      width:100%;
+      max-height:94vh;
+      border-radius:22px;
+      margin-top:8px;
+    }
+    .modalHead{
+      padding:14px 14px 12px;
+    }
+    .modalTitle{
+      font-size:20px;
+    }
+    .modalBody{
+      padding:12px;
+    }
+    .addGrid{
+      gap:12px;
+    }
+    .formPanel{
+      padding:12px;
+      border-radius:16px;
+    }
+    .row2, .row3{
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    .previewCard{
+      grid-template-columns:84px minmax(0,1fr);
+      gap:10px;
+      padding:10px;
+    }
+    .previewPoster{
+      flex-shrink:0;
+      width:84px;
+      height:126px;
+      border-radius:12px;
+    }
+    .inlineActions{
+      gap:8px;
+    }
+    .primaryAdd, .secondaryAdd{
+      width:100%;
+      justify-content:center;
+    }
+  }
+  @media (min-width: 780px) {
+    .stats{grid-template-columns:repeat(4,1fr)}
+    .grid2{grid-template-columns:1.1fr .9fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>🎬 Filmes do Dener</h1>
+    <p>Versão interativa, pensada para celular, com visual mais bonito, termômetro de qualidade e expansão por clique. Toque no card do filme para abrir sinopse, trailer, streaming e detalhes.</p>
+    <div class="hint">As capas agora tentam carregar por duas rotas diferentes da Wikipédia. Se alguma ainda falhar no preview do Acode, o card mostra um fallback mais bonito com o nome do filme.</div>
+  </section>
+
+  <div class="searchBox">
+    <div class="searchInner">
+      <input id="search" class="search" type="text" placeholder="Buscar por filme, gênero, streaming..." />
+      <div class="topActions">
+        <button class="themeLauncher" onclick="openThemeSheet()">🎨 Temas</button>
+        <div class="streamGrid">
+          <button class="streamChip" onclick="setQuickFilter('')"><span class="streamLogoBadge" style="background:#6b7280">•</span>Todos</button>
+          <button class="streamChip" onclick="setQuickFilter('Netflix')"><span class="streamLogoBadge" style="background:#e50914">N</span>Netflix</button>
+          <button class="streamChip" onclick="setQuickFilter('Max')"><span class="streamLogoBadge" style="background:#2563eb">M</span>Max</button>
+          <button class="streamChip" onclick="setQuickFilter('Prime Video')"><span class="streamLogoBadge" style="background:#10b981">P</span>Prime Video</button>
+          <button class="streamChip" onclick="setQuickFilter('Disney+')"><span class="streamLogoBadge" style="background:#7c3aed">D</span>Disney+</button>
+          <button class="streamChip" onclick="setQuickFilter('Paramount+')"><span class="streamLogoBadge" style="background:#0ea5e9">P+</span>Paramount+</button>
+        </div>
+      </div>
+
+  <div class="filterSection" id="smartFilters">
+    <div class="filterHeader" onclick="toggleSmartFilters()">
+      <div class="filterTitle">Filtros inteligentes</div>
+      <div class="filterChevron">⌄</div>
+    </div>
+    <div class="filterBody">
+      <div class="toolbar" style="padding-top:0; margin-bottom:10px">
+        <button class="filterBtn" onclick="setGenreQuick('Todos')">Todos</button>
+        <button class="filterBtn" onclick="setGenreQuick('Comédia')">Comédia</button>
+        <button class="filterBtn" onclick="setGenreQuick('Ação')">Ação</button>
+        <button class="filterBtn" onclick="setGenreQuick('Família')">Família</button>
+        <button class="filterBtn" onclick="setGenreQuick('Suspense')">Suspense</button>
+        <button class="filterBtn" onclick="setGenreQuick('Ficção Científica')">Sci‑Fi</button>
+        <button class="filterBtn" onclick="clearAllFilters()">Limpar filtros</button>
+      </div>
+      <div class="rangeGrid">
+        <div class="rangeRow"><label>Família</label><input id="filterFamily" type="range" min="0" max="5" step="1" value="0"><span id="filterFamilyVal">0</span></div>
+        <div class="rangeRow"><label>Suspense</label><input id="filterSuspense" type="range" min="0" max="5" step="1" value="0"><span id="filterSuspenseVal">0</span></div>
+        <div class="rangeRow"><label>Impacto</label><input id="filterImpact" type="range" min="0" max="5" step="1" value="0"><span id="filterImpactVal">0</span></div>
+        <div class="rangeRow"><label>Qualidade</label><input id="filterQuality" type="range" min="0" max="99" step="1" value="0"><span id="filterQualityVal">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><small>Filmes na lista</small><b id="statTotal">30</b></div>
+    <div class="stat topStat"><small>Top absoluto</small><b id="statTop">Os Infiltrados</b></div>
+    <div class="stat familyStat"><small>Melhor família</small><b id="statFamily">Dungeons & Dragons</b></div>
+    <div class="stat suspenseStat"><small>Melhor suspense</small><b id="statSuspense">Os Suspeitos</b></div>
+    <div class="stat mysteryStat"><small>Melhor mistério</small><b id="statMystery">Amnésia (Memento)</b></div>
+    <div class="stat realStat"><small>Baseado em fatos reais</small><b id="statReal">Spotlight: Segredos Revelados</b></div>
+  </div>
+
+  <div class="heroActions">
+    <button class="themeBtn" onclick="exportData()">Exportar</button>
+    <label class="themeBtn">Importar<input type="file" style="display:none" onchange="importData(this)"></label>
+    <button class="heroBtn" onclick="openAddMovieModal()">+ Adicionar filme</button>
+  </div>
+
+  <div class="topTabs">
+    <button id="tabWatchlist" class="tabBtn active" onclick="setViewMode('watchlist')">Para assistir</button>
+    <button id="tabWatched" class="tabBtn" onclick="setViewMode('watched')">Já assistidos</button>
+  </div>
+
+  <div class="sortBar">
+    <button class="sortLauncher" onclick="openSortSheet()">↕️ Ordenar filmes</button>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  
+
+<div id="themeSheet" class="themeBackdrop" onclick="if(event.target===this) closeThemeSheet()">
+  <div class="themeSheet">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+      <div>
+        <div style="font-size:22px; font-weight:900">Escolher tema</div>
+        <div class="smallHelp">Temas escuros com personalidade própria, inspirados nas grandes plataformas.</div>
+      </div>
+      <button class="closeBtn" onclick="closeThemeSheet()">×</button>
+    </div>
+    <div class="themeGrid">
+      <button class="themeCard" onclick="setTheme('default'); closeThemeSheet()">
+        <div class="themePreview" style="background:linear-gradient(135deg,#0f172a,#1d4ed8,#06b6d4)"></div>
+        <div class="themeName">Padrão</div>
+        <div class="themeNote">Base escura do app com azul neon.</div>
+      </button>
+      <button class="themeCard" onclick="setTheme('apple'); closeThemeSheet()">
+        <div class="themePreview" style="background:radial-gradient(circle at top left, rgba(255,255,255,.22), transparent 35%), linear-gradient(135deg,#111214,#2b2d31,#6b7280)"></div>
+        <div class="themeName">Apple Dark</div>
+        <div class="themeNote">Vidro fosco, cinzas suaves e minimalismo premium.</div>
+      </button>
+      <button class="themeCard" onclick="setTheme('netflix'); closeThemeSheet()">
+        <div class="themePreview" style="background:linear-gradient(135deg,#090909,#7f1d1d,#e50914)"></div>
+        <div class="themeName">Netflix</div>
+        <div class="themeNote">Preto profundo, vermelho forte e contraste alto.</div>
+      </button>
+      <button class="themeCard" onclick="setTheme('hbomax'); closeThemeSheet()">
+        <div class="themePreview" style="background:linear-gradient(135deg,#12071f,#6d28d9,#db2777)"></div>
+        <div class="themeName">HBO Max</div>
+        <div class="themeNote">Roxo escuro com glow premium e clima cinematográfico.</div>
+      </button>
+      <button class="themeCard" onclick="setTheme('disney'); closeThemeSheet()">
+        <div class="themePreview" style="background:linear-gradient(135deg,#05172d,#2563eb,#7dd3fc)"></div>
+        <div class="themeName">Disney+</div>
+        <div class="themeNote">Azul noturno refinado com brilho suave.</div>
+      </button>
+      <button class="themeCard" onclick="setTheme('prime'); closeThemeSheet()">
+        <div class="themePreview" style="background:linear-gradient(135deg,#082028,#0891b2,#34d399)"></div>
+        <div class="themeName">Prime Video</div>
+        <div class="themeNote">Azul petróleo e ciano com visual moderno.</div>
+      </button>
+      <button class="themeCard" onclick="setTheme('cinema'); closeThemeSheet()">
+        <div class="themePreview" style="background:linear-gradient(135deg,#140f08,#b45309,#fde68a)"></div>
+        <div class="themeName">Cinema Gold</div>
+        <div class="themeNote">Luxo escuro com dourado cinematográfico.</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div id="sortSheet" class="sortBackdrop" onclick="if(event.target===this) closeSortSheet()">
+  <div class="sortSheet">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+      <div>
+        <div style="font-size:22px; font-weight:900">Ordenar filmes</div>
+        <div class="smallHelp">Escolha como você quer visualizar a lista.</div>
+      </div>
+      <button class="closeBtn" onclick="closeSortSheet()">×</button>
+    </div>
+    <div class="sortOptions">
+      <button class="sortOption" onclick="setSortMode('default_recommended')"><span>✨ Padrão recomendado</span><small>O que assistir primeiro</small></button>
+      <button class="sortOption" onclick="setSortMode('quality_desc')"><span>⭐ Melhor avaliação</span><small>Top primeiro</small></button>
+      <button class="sortOption" onclick="setSortMode('newest')"><span>🆕 Recém adicionados</span><small>Últimos primeiro</small></button>
+      <button class="sortOption" onclick="setSortMode('oldest')"><span>📚 Mais antigos</span><small>Primeiros adicionados</small></button>
+      <button class="sortOption" onclick="setSortMode('duration_desc')"><span>⏱️ Maior duração</span><small>Filmes longos</small></button>
+      <button class="sortOption" onclick="setSortMode('duration_asc')"><span>⚡ Menor duração</span><small>Filmes curtos</small></button>
+      <button class="sortOption" onclick="setSortMode('rating_desc')"><span>🔞 Maior classificação</span><small>18, 16, 14...</small></button>
+      <button class="sortOption" onclick="setSortMode('rating_asc')"><span>🟢 Mais livre</span><small>L, 10, 12...</small></button>
+      <button class="sortOption" onclick="setSortMode('suspense_desc')"><span>🕵️ Mais suspense</span><small>Tensão primeiro</small></button>
+    </div>
+  </div>
+</div>
+
+<div id="addMovieModal" class="modalBackdrop" onclick="if(event.target===this) closeAddMovieModal()">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div id="movieModalTitle" class="modalTitle">Adicionar novo filme</div>
+        <div class="smallHelp">Cole um nome, link do Google, Wikipédia ou IMDb. O sistema tenta preencher automaticamente e, se algo ficar incerto, você completa manualmente.</div>
+      </div>
+      <button class="closeBtn" onclick="closeAddMovieModal()">×</button>
+    </div>
+    <div class="modalBody">
+      <div class="addGrid">
+        <div class="formPanel">
+          <h3>Entrada inteligente</h3>
+          <input id="f_originalTitle" type="hidden">
+          <div class="gptCodeBox">
+            <div class="field" style="margin-bottom:8px">
+              <label>Cole aqui o código GPT</label>
+              <textarea id="gptCodeInput" class="gptCodeArea" placeholder="Cole aqui o bloco :::FILME_GPT_V1::: ... :::FIM_FILME_GPT_V1:::"></textarea>
+            </div>
+            <div class="inlineActions">
+              <a class="gptPrimaryLink" href="https://chatgpt.com/g/g-69c8fec3c48481918fdeac0f0aa54fa2-filme-codigo-gpt" target="_blank" rel="noopener" onclick="openGptGenerator(event)"><span>✨ Gerar código GPT</span></a>
+              <button class="primaryAdd" onclick="pasteGptCode()">Colar código GPT</button>
+              <button class="primaryAdd" onclick="readGptCode()">Ler código GPT</button>
+              <button class="secondaryAdd" onclick="clearGptCode()">Limpar código</button>
+            </div>
+            <div id="gptCodeStatus" class="smallHelp" style="margin-top:10px">Cole o código gerado pelo seu GPT. O sistema vai ler, exibir a barra de leitura e preencher os campos automaticamente.</div>
+            <div id="gptProgressWrap" class="progressWrap">
+              <div class="progressTrack"><div id="gptProgressFill" class="progressFill"></div></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nome do filme ou link</label>
+            <input id="sourceInput" placeholder="Ex.: https://www.google.com/search?q=Interestelar+filme ou Interestelar">
+          </div>
+          <div class="inlineActions">
+            <button class="primaryAdd" onclick="autoFillMovie()">Preencher automaticamente</button>
+            <button class="secondaryAdd" onclick="clearAddMovieForm()">Limpar</button>
+          </div>
+          <div id="autoFillStatus" class="smallHelp" style="margin-top:10px">Dica: link da Wikipédia costuma ser o mais preciso.</div>
+          <div id="candidateWrap" class="candidateList"></div>
+        </div>
+
+        <div class="formPanel">
+          <h3>Prévia</h3>
+          <div class="previewCard">
+            <img id="previewPoster" class="previewPoster" src="https://placehold.co/300x450/111827/E5E7EB?text=Poster" alt="Prévia do poster">
+            <div>
+              <div id="previewTitle" style="font-weight:800; font-size:20px; margin-bottom:8px; overflow-wrap:anywhere; word-break:break-word">Novo filme</div>
+              <div class="smallHelp" id="previewMeta">Os dados preenchidos aparecerão aqui.</div>
+              <div style="margin-top:10px" id="previewPosition"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="addGrid" style="margin-top:14px">
+        <div class="formPanel">
+          <h3>Detalhes principais</h3>
+          <div class="field"><label>Título</label><input id="f_title"></div>
+          <div class="field"><label>Sinopse</label><textarea id="f_synopsis"></textarea></div>
+          <div class="row2">
+            <div class="field"><label>Gênero</label><input id="f_genre" placeholder="Ex.: Suspense/Crime"></div>
+            <div class="field"><label>Duração</label><input id="f_duration" placeholder="Ex.: 2h 10m"></div>
+          </div>
+          <div class="row3">
+            <div class="field"><label>IMDb</label><input id="f_imdb" type="number" step="0.1" min="0" max="10"></div>
+            <div class="field"><label>Rotten %</label><input id="f_rt" type="number" step="1" min="0" max="100"></div>
+            <div class="field"><label>Qualidade final</label><input id="f_quality" type="number" step="1" min="1" max="100"></div>
+          </div>
+          <div class="smallHelp">A qualidade final pode ser calculada automaticamente a partir de IMDb, Rotten e gênero, mas você pode ajustar.</div>
+        </div>
+
+        <div class="formPanel">
+          <h3>Classificação e termômetros</h3>
+          <div class="row3">
+            <div class="field">
+              <label>Classificação</label>
+              <select id="f_rating">
+                <option value="L">Livre</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+                <option value="14">14</option>
+                <option value="16">16</option>
+                <option value="18">18</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Nudez</label>
+              <select id="f_nudity">
+                <option>Não</option>
+                <option>Sim</option>
+              </select>
+            </div>
+            <div class="field"><label>Streaming</label><input id="f_streaming" placeholder="Ex.: Netflix, Max"></div>
+          </div>
+          <div class="row3">
+            <div class="field"><label>Família (1 a 5)</label><input id="f_family" type="number" min="1" max="5" step="1"></div>
+            <div class="field"><label>Suspense (1 a 5)</label><input id="f_suspense" type="number" min="1" max="5" step="1"></div>
+            <div class="field"><label>Impacto (1 a 5)</label><input id="f_impact" type="number" min="1" max="5" step="1"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Link do Google</label><input id="f_google"></div>
+            <div class="field"><label>Link do trailer</label><input id="f_trailer"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>ID/Título da Wikipédia</label><input id="f_wiki"></div>
+            <div class="field"><label>Link do poster (opcional)</label><input id="f_poster"></div>
+          </div>
+          <div class="inlineActions">
+            <button class="secondaryAdd" onclick="recalculateFromForm()">Recalcular posição</button>
+            <button id="submitMovieBtn" class="primaryAdd" onclick="addMovieFromForm()">Adicionar à lista</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="ratePrompt" class="ratePromptBackdrop" onclick="if(event.target===this) closeRatePrompt()">
+  <div class="ratePrompt">
+    <div class="ratePromptTitle">Avalie o filme</div>
+    <div class="ratePromptText">Você marcou este filme como já assistido. Escolha uma nota de 1 a 10, ou feche sem avaliar.</div>
+    <div id="ratePromptMovie" style="font-weight:700; margin-bottom:8px"></div>
+    <div class="rateSliderWrap">
+      <div id="ratePromptValue" class="rateSliderValue">0.0 / 10</div>
+      <input id="ratePromptSlider" class="rateSlider" type="range" min="0" max="10" step="0.1" value="0">
+      <div class="rateScale"><span>0</span><span>5</span><span>10</span></div>
+      <div class="rateSliderHint">Arraste a barra e escolha sua nota com precisão, ex.: 7.5, 7.7, 9.9...</div>
+      <div id="ratePerfect" class="ratePerfect">🔥 Nota máxima, você curtiu demais esse filme!</div>
+    </div>
+    <div class="rateCommentWrap">
+      <label for="ratePromptComment">Comentário rápido, opcional, até 250 caracteres</label>
+      <textarea id="ratePromptComment" class="rateComment" maxlength="250" placeholder="Ex.: final excelente, ver de novo, lento no começo..."></textarea>
+      <div id="ratePromptCount" class="charCount">0/250</div>
+    </div>
+    <div class="ratePromptActions">
+      <button class="secondaryAdd" onclick="closeRatePrompt()">Fechar</button>
+      <button class="primaryAdd" onclick="confirmRatePrompt()">Salvar avaliação</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmDeleteModal" class="confirmDeleteBackdrop" onclick="if(event.target===this) closeDeleteConfirm()">
+  <div class="confirmDelete">
+    <div style="font-size:22px; font-weight:800; margin-bottom:8px">Remover filme</div>
+    <div id="deleteConfirmText" class="smallHelp" style="margin-bottom:14px">Deseja remover este filme da lista?</div>
+    <div class="inlineActions">
+      <button class="secondaryAdd" onclick="closeDeleteConfirm()">Cancelar</button>
+      <button class="deleteBtn" onclick="confirmDeleteMovie()">Remover</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+    Os botões de streaming abrem uma busca já focada no serviço e no filme, o que costuma funcionar melhor do que tentar usar um link fixo de catálogo, já que esses links mudam com frequência.
+  </div>
+</div>
+
+<script>
+const baseMovies = [{"title": "Os Infiltrados", "wiki": "The_Departed", "rt": 91, "imdb": 8.5, "genre": "Policial/Drama", "duration": "2h 31m", "rating": "16", "nudity": "Sim", "streaming": ["Max", "Prime Video (aluguel)"], "google": "https://www.google.com/search?q=Os+Infiltrados+filme", "synopsis": "Um policial se infiltra na máfia de Boston enquanto um criminoso trabalha como informante dentro da polícia. Os dois lados tentam descobrir quem é o traidor antes que seja tarde.", "trailer": "https://www.youtube.com/results?search_query=Os+Infiltrados+trailer+legendado", "family": 2, "suspense": 5, "impact": 5, "quality": 96}, {"title": "Os Suspeitos (Prisoners)", "wiki": "Prisoners_(2013_film)", "rt": 81, "imdb": 8.1, "genre": "Suspense/Crime", "duration": "2h 33m", "rating": "16", "nudity": "Não", "streaming": ["Busca streaming"], "google": "https://www.google.com/search?q=Os+Suspeitos+filme+2013", "synopsis": "Depois do desaparecimento de duas meninas, um pai desesperado decide agir por conta própria. A investigação se aprofunda e o filme mantém tensão quase o tempo todo.", "trailer": "https://www.youtube.com/results?search_query=Prisoners+trailer+legendado", "family": 1, "suspense": 5, "impact": 5, "quality": 95}, {"title": "Onde os Fracos Não Têm Vez", "wiki": "No_Country_for_Old_Men_(film)", "rt": 93, "imdb": 8.2, "genre": "Suspense/Crime", "duration": "2h 02m", "rating": "16", "nudity": "Não", "streaming": ["Prime Video", "Aluguel"], "google": "https://www.google.com/search?q=Onde+os+Fracos+Não+T%C3%AAm+Vez+filme", "synopsis": "Após encontrar uma mala cheia de dinheiro no deserto, um homem comum vira alvo de um assassino implacável. É tenso, seco e muito envolvente.", "trailer": "https://www.youtube.com/results?search_query=Onde+os+Fracos+Nao+Tem+Vez+trailer", "family": 1, "suspense": 5, "impact": 5, "quality": 94}, {"title": "A Origem", "wiki": "Inception", "rt": 87, "imdb": 8.8, "genre": "Ficção Científica", "duration": "2h 28m", "rating": "14", "nudity": "Não", "streaming": ["Netflix", "Max"], "google": "https://www.google.com/search?q=A+Origem+filme", "synopsis": "Um especialista em roubar segredos por meio dos sonhos recebe a missão inversa: implantar uma ideia na mente de um alvo. Visualmente forte e com ritmo que prende.", "trailer": "https://www.youtube.com/results?search_query=A+Origem+trailer+legendado", "family": 3, "suspense": 5, "impact": 5, "quality": 94}, {"title": "Amnésia (Memento)", "wiki": "Memento_(film)", "rt": 93, "imdb": 8.0, "genre": "Suspense", "duration": "1h 53m", "rating": "14", "nudity": "Sim", "streaming": ["Prime Video", "Aluguel"], "google": "https://www.google.com/search?q=Amn%C3%A9sia+filme+Nolan", "synopsis": "Um homem com perda de memória recente tenta encontrar o assassino da esposa usando fotos, anotações e tatuagens. O filme é inteligente e vicia rápido.", "trailer": "https://www.youtube.com/results?search_query=Amnesia+Memento+trailer+legendado", "family": 2, "suspense": 5, "impact": 4, "quality": 92}, {"title": "Spotlight: Segredos Revelados", "wiki": "Spotlight_(film)", "rt": 97, "imdb": 8.1, "genre": "Drama/Fatos Reais", "duration": "2h 08m", "rating": "12", "nudity": "Não", "streaming": ["Disney+", "Aluguel"], "google": "https://www.google.com/search?q=Spotlight+filme", "synopsis": "Baseado em fatos reais, acompanha jornalistas investigando um grande escândalo dentro da Igreja. Menos explosivo, mas muito forte e excelente.", "trailer": "https://www.youtube.com/results?search_query=Spotlight+trailer+legendado", "family": 4, "suspense": 3, "impact": 5, "quality": 91}, {"title": "Argo", "wiki": "Argo_(2012_film)", "rt": 96, "imdb": 7.7, "genre": "Suspense/História", "duration": "2h 00m", "rating": "14", "nudity": "Não", "streaming": ["Netflix", "Max"], "google": "https://www.google.com/search?q=Argo+filme", "synopsis": "Baseado em uma operação real da CIA para resgatar diplomatas durante a crise no Irã. Mistura história real, tensão e um ritmo bem eficiente.", "trailer": "https://www.youtube.com/results?search_query=Argo+trailer+legendado", "family": 4, "suspense": 4, "impact": 4, "quality": 90}, {"title": "Cartas de Iwo Jima", "wiki": "Letters_from_Iwo_Jima", "rt": 91, "imdb": 7.8, "genre": "Guerra/Drama", "duration": "2h 21m", "rating": "14", "nudity": "Não", "streaming": ["Max", "Aluguel"], "google": "https://www.google.com/search?q=Cartas+de+Iwo+Jima+filme", "synopsis": "Drama de guerra visto pelo lado japonês durante a batalha de Iwo Jima. É humano, emocionante e respeitado por crítica e público.", "trailer": "https://www.youtube.com/results?search_query=Cartas+de+Iwo+Jima+trailer", "family": 3, "suspense": 3, "impact": 5, "quality": 89}, {"title": "A Grande Aposta", "wiki": "The_Big_Short_(film)", "rt": 89, "imdb": 7.8, "genre": "Comédia/Drama", "duration": "2h 10m", "rating": "14", "nudity": "Sim", "streaming": ["Netflix", "Prime Video"], "google": "https://www.google.com/search?q=A+Grande+Aposta+filme", "synopsis": "Mostra, de forma dinâmica e até divertida, como alguns investidores previram a crise financeira de 2008. Muito bom para quem gosta de história real e roteiro inteligente.", "trailer": "https://www.youtube.com/results?search_query=A+Grande+Aposta+trailer+legendado", "family": 3, "suspense": 3, "impact": 4, "quality": 88}, {"title": "Drive", "wiki": "Drive_(2011_film)", "rt": 93, "imdb": 7.8, "genre": "Ação/Drama", "duration": "1h 40m", "rating": "16", "nudity": "Sim", "streaming": ["Prime Video", "Aluguel"], "google": "https://www.google.com/search?q=Drive+filme+Ryan+Gosling", "synopsis": "Um motorista misterioso de Hollywood leva vida dupla como piloto de fuga. Tem estilo forte, clima marcante e cenas intensas.", "trailer": "https://www.youtube.com/results?search_query=Drive+2011+trailer+legendado", "family": 2, "suspense": 4, "impact": 4, "quality": 87}, {"title": "O Jogo (The Game)", "wiki": "The_Game_(1997_film)", "rt": 77, "imdb": 7.7, "genre": "Suspense/Mistério", "duration": "2h 09m", "rating": "14", "nudity": "Não", "streaming": ["Netflix", "Aluguel"], "google": "https://www.google.com/search?q=O+Jogo+filme+Michael+Douglas", "synopsis": "Um milionário entra num jogo estranho que começa a invadir sua vida real. O filme é cheio de viradas e segura bem a atenção.", "trailer": "https://www.youtube.com/results?search_query=The+Game+1997+trailer+legendado", "family": 3, "suspense": 5, "impact": 4, "quality": 87}, {"title": "O Homem que Mudou o Jogo", "wiki": "Moneyball_(film)", "rt": 94, "imdb": 7.6, "genre": "Drama/Esporte", "duration": "2h 13m", "rating": "L", "nudity": "Não", "streaming": ["Netflix", "Aluguel"], "google": "https://www.google.com/search?q=O+Homem+que+Mudou+o+Jogo+filme", "synopsis": "Baseado em fatos reais, mostra como um dirigente de beisebol usa estatística para montar um time competitivo. Mesmo sem gostar de esporte, costuma prender.", "trailer": "https://www.youtube.com/results?search_query=Moneyball+trailer+legendado", "family": 5, "suspense": 2, "impact": 4, "quality": 86}, {"title": "O Operário", "wiki": "The_Machinist", "rt": 77, "imdb": 7.6, "genre": "Suspense", "duration": "1h 41m", "rating": "16", "nudity": "Sim", "streaming": ["Prime Video", "Aluguel"], "google": "https://www.google.com/search?q=O+Oper%C3%A1rio+filme", "synopsis": "Um operário que não dorme há meses começa a desconfiar da própria sanidade. É sombrio, curto e com boa tensão psicológica.", "trailer": "https://www.youtube.com/results?search_query=O+Operario+The+Machinist+trailer", "family": 1, "suspense": 5, "impact": 4, "quality": 84}, {"title": "Sem Limites", "wiki": "Limitless_(film)", "rt": 69, "imdb": 7.4, "genre": "Suspense/Sci-Fi", "duration": "1h 45m", "rating": "14", "nudity": "Não", "streaming": ["Netflix", "Prime Video"], "google": "https://www.google.com/search?q=Sem+Limites+filme", "synopsis": "Um escritor fracassado descobre uma droga que libera o máximo do seu cérebro e muda de vida da noite para o dia. É fácil de assistir e entretém muito.", "trailer": "https://www.youtube.com/results?search_query=Sem+Limites+Limitless+trailer+legendado", "family": 3, "suspense": 4, "impact": 3, "quality": 82}, {"title": "Tenet", "wiki": "Tenet_(film)", "rt": 69, "imdb": 7.3, "genre": "Ficção Científica", "duration": "2h 30m", "rating": "14", "nudity": "Não", "streaming": ["Max", "Aluguel"], "google": "https://www.google.com/search?q=Tenet+filme", "synopsis": "Um agente entra numa missão internacional envolvendo manipulação temporal. Visualmente impressionante, mas mais complexo e frio que outros do Nolan.", "trailer": "https://www.youtube.com/results?search_query=Tenet+trailer+legendado", "family": 3, "suspense": 4, "impact": 4, "quality": 80}, {"title": "Dungeons & Dragons", "wiki": "Dungeons_%26_Dragons%3A_Honor_Among_Thieves", "rt": 91, "imdb": 7.2, "genre": "Aventura/Fantasia", "duration": "2h 14m", "rating": "12", "nudity": "Não", "streaming": ["Paramount+"], "google": "https://www.google.com/search?q=Dungeons+and+Dragons+filme", "synopsis": "Uma aventura divertida, leve e carismática, com bastante ação e humor. Ótima pedida para ver em família e sem peso.", "trailer": "https://www.youtube.com/results?search_query=Dungeons+and+Dragons+Honor+Among+Thieves+trailer+legendado", "family": 5, "suspense": 2, "impact": 3, "quality": 80}, {"title": "Trapaça (American Hustle)", "wiki": "American_Hustle", "rt": 92, "imdb": 7.2, "genre": "Comédia/Drama", "duration": "2h 18m", "rating": "14", "nudity": "Sim", "streaming": ["Prime Video", "Aluguel"], "google": "https://www.google.com/search?q=Trapa%C3%A7a+filme", "synopsis": "Dois golpistas são forçados pelo FBI a participar de uma operação cheia de políticos, trapaças e aparências. Elenco forte e clima de golpe elegante.", "trailer": "https://www.youtube.com/results?search_query=American+Hustle+trailer+legendado", "family": 2, "suspense": 3, "impact": 3, "quality": 78}, {"title": "O Hospedeiro", "wiki": "The_Host_(2006_film)", "rt": 93, "imdb": 7.1, "genre": "Terror/Sci-Fi", "duration": "2h 00m", "rating": "14", "nudity": "Não", "streaming": ["Prime Video", "MUBI"], "google": "https://www.google.com/search?q=O+Hospedeiro+filme+coreano", "synopsis": "Depois de um desastre ambiental, uma criatura surge e sequestra uma garota. O filme mistura monstro, crítica social e drama familiar.", "trailer": "https://www.youtube.com/results?search_query=O+Hospedeiro+The+Host+2006+trailer", "family": 3, "suspense": 3, "impact": 3, "quality": 78}, {"title": "Coerência (Coherence)", "wiki": "Coherence_(film)", "rt": 88, "imdb": 7.0, "genre": "Sci-Fi/Mistério", "duration": "1h 29m", "rating": "14", "nudity": "Não", "streaming": ["Prime Video"], "google": "https://www.google.com/search?q=Coer%C3%AAncia+filme", "synopsis": "Durante um jantar entre amigos, um cometa provoca acontecimentos estranhos e realidades paralelas. É curto, criativo e prende pelo mistério.", "trailer": "https://www.youtube.com/results?search_query=Coherence+trailer", "family": 3, "suspense": 4, "impact": 3, "quality": 77}, {"title": "Noites Brutais (Barbarian)", "wiki": "Barbarian_(2022_film)", "rt": 92, "imdb": 7.0, "genre": "Terror", "duration": "1h 42m", "rating": "18", "nudity": "Sim", "streaming": ["Disney+"], "google": "https://www.google.com/search?q=Noites+Brutais+filme", "synopsis": "Uma mulher chega a uma casa alugada e descobre que algo está muito errado ali. Terror moderno, imprevisível e cheio de viradas.", "trailer": "https://www.youtube.com/results?search_query=Barbarian+trailer+legendado", "family": 1, "suspense": 5, "impact": 4, "quality": 77}, {"title": "Questão de Tempo", "wiki": "About_Time_(2013_film)", "rt": 70, "imdb": 7.8, "genre": "Romance/Fantasia", "duration": "2h 03m", "rating": "12", "nudity": "Não", "streaming": ["Netflix"], "google": "https://www.google.com/search?q=Quest%C3%A3o+de+Tempo+filme", "synopsis": "Um jovem descobre que os homens da sua família podem viajar no tempo e decide usar isso para melhorar a própria vida. É mais emocional e leve que tenso.", "trailer": "https://www.youtube.com/results?search_query=Questao+de+Tempo+About+Time+trailer+legendado", "family": 5, "suspense": 1, "impact": 4, "quality": 77}, {"title": "A Lenda do Tesouro Perdido", "wiki": "National_Treasure_(film)", "rt": 46, "imdb": 6.9, "genre": "Aventura", "duration": "2h 11m", "rating": "L", "nudity": "Não", "streaming": ["Disney+"], "google": "https://www.google.com/search?q=A+Lenda+do+Tesouro+Perdido+filme", "synopsis": "Um aventureiro caça um tesouro lendário seguindo pistas escondidas na história dos Estados Unidos. Filme divertido, acessível e familiar.", "trailer": "https://www.youtube.com/results?search_query=A+Lenda+do+Tesouro+Perdido+trailer", "family": 5, "suspense": 2, "impact": 2, "quality": 75}, {"title": "O Homem Duplicado", "wiki": "Enemy_(2013_film)", "rt": 72, "imdb": 6.9, "genre": "Suspense/Drama", "duration": "1h 31m", "rating": "14", "nudity": "Sim", "streaming": ["Prime Video"], "google": "https://www.google.com/search?q=O+Homem+Duplicado+filme", "synopsis": "Um professor encontra um homem idêntico a ele e mergulha numa espiral estranha de obsessão e medo. É intrigante, mas mais simbólico que direto.", "trailer": "https://www.youtube.com/results?search_query=Enemy+trailer+legendado", "family": 1, "suspense": 4, "impact": 3, "quality": 72}, {"title": "Primer", "wiki": "Primer_(film)", "rt": 73, "imdb": 6.7, "genre": "Sci-Fi/Drama", "duration": "1h 17m", "rating": "12", "nudity": "Não", "streaming": ["Apple TV (aluguel)", "Prime Video (aluguel)"], "google": "https://www.google.com/search?q=Primer+filme", "synopsis": "Dois engenheiros criam acidentalmente uma máquina do tempo. É cultuado, mas mais difícil de acompanhar e menos imediato para a maioria.", "trailer": "https://www.youtube.com/results?search_query=Primer+2004+trailer", "family": 2, "suspense": 3, "impact": 2, "quality": 70}, {"title": "Elysium", "wiki": "Elysium_(film)", "rt": 64, "imdb": 6.6, "genre": "Sci-Fi/Ação", "duration": "1h 49m", "rating": "16", "nudity": "Não", "streaming": ["Netflix", "Prime Video"], "google": "https://www.google.com/search?q=Elysium+filme", "synopsis": "Num futuro dividido entre ricos e pobres, um homem tenta mudar o destino da humanidade. Tem ação e ideia boa, mas execução divide mais.", "trailer": "https://www.youtube.com/results?search_query=Elysium+trailer+legendado", "family": 2, "suspense": 3, "impact": 2, "quality": 69}, {"title": "Joy: O Nome do Sucesso", "wiki": "Joy_(film)", "rt": 60, "imdb": 6.6, "genre": "Drama", "duration": "2h 04m", "rating": "10", "nudity": "Não", "streaming": ["Disney+"], "google": "https://www.google.com/search?q=Joy+O+Nome+do+Sucesso+filme", "synopsis": "Inspirado na trajetória de uma inventora que luta para transformar sua criação em negócio. É agradável, mas menos viciante que os melhores da lista.", "trailer": "https://www.youtube.com/results?search_query=Joy+o+nome+do+sucesso+trailer", "family": 5, "suspense": 1, "impact": 2, "quality": 68}, {"title": "O Mundo Depois de Nós", "wiki": "Leave_the_World_Behind_(film)", "rt": 74, "imdb": 6.5, "genre": "Suspense/Drama", "duration": "2h 18m", "rating": "16", "nudity": "Não", "streaming": ["Netflix"], "google": "https://www.google.com/search?q=O+Mundo+Depois+de+N%C3%B3s+filme", "synopsis": "Duas famílias ficam isoladas durante um colapso misterioso da tecnologia. Tem clima e tensão, mas divide bastante o público no desfecho.", "trailer": "https://www.youtube.com/results?search_query=O+Mundo+Depois+de+Nos+trailer", "family": 3, "suspense": 4, "impact": 2, "quality": 67}, {"title": "Fratura", "wiki": "Fractured_(2019_film)", "rt": 59, "imdb": 6.4, "genre": "Suspense", "duration": "1h 40m", "rating": "16", "nudity": "Não", "streaming": ["Netflix"], "google": "https://www.google.com/search?q=Fratura+filme+Netflix", "synopsis": "Depois de um acidente, um homem acredita que hospital esconde algo sobre sua família desaparecida. É interessante e rápido, mas não tão forte quanto os melhores.", "trailer": "https://www.youtube.com/results?search_query=Fratura+Netflix+trailer", "family": 2, "suspense": 4, "impact": 2, "quality": 66}, {"title": "Os Pequenos Vestígios", "wiki": "The_Little_Things_(2021_film)", "rt": 44, "imdb": 6.3, "genre": "Policial", "duration": "2h 08m", "rating": "16", "nudity": "Sim", "streaming": ["Max"], "google": "https://www.google.com/search?q=Os+Pequenos+Vest%C3%ADgios+filme", "synopsis": "Dois policiais investigam um serial killer em Los Angeles. Tem elenco forte, mas o desenvolvimento e o final dividem bastante.", "trailer": "https://www.youtube.com/results?search_query=Os+Pequenos+Vestigios+trailer", "family": 1, "suspense": 3, "impact": 2, "quality": 62}, {"title": "O Juízo", "wiki": "O_Juízo", "rt": 0, "imdb": 5.5, "genre": "Terror/Drama", "duration": "1h 35m", "rating": "14", "nudity": "Não", "streaming": ["Globoplay", "Aluguel"], "google": "https://www.google.com/search?q=O+Ju%C3%ADzo+filme+brasileiro", "synopsis": "Uma família se muda para uma mansão antiga e passa a sofrer com uma presença sobrenatural ligada ao passado. É o menos forte do conjunto.", "trailer": "https://www.youtube.com/results?search_query=O+Juizo+filme+trailer", "family": 2, "suspense": 3, "impact": 1, "quality": 55}];
+
+const platformSearch = {"Netflix": "https://www.google.com/search?q=site%3Anetflix.com+{query}", "Max": "https://www.google.com/search?q=site%3Aplay.max.com+{query}", "Prime Video": "https://www.google.com/search?q=site%3Aprimevideo.com+{query}", "Prime Video (aluguel)": "https://www.google.com/search?q=site%3Aprimevideo.com+{query}", "Disney+": "https://www.google.com/search?q=site%3Adisneyplus.com+{query}", "Paramount+": "https://www.google.com/search?q=site%3Aparamountplus.com+{query}", "MUBI": "https://www.google.com/search?q=site%3Amubi.com+{query}", "Globoplay": "https://www.google.com/search?q=site%3Agloboplay.globo.com+{query}", "Apple TV (aluguel)": "https://www.google.com/search?q=site%3Atv.apple.com+{query}", "Aluguel": "https://www.google.com/search?q={query}+filme+aluguel", "Busca streaming": "https://www.google.com/search?q={query}+onde+assistir+streaming"};
+
+
+let movies = [...baseMovies];
+
+let currentViewMode = "watchlist";
+let currentDeleteTitle = "";
+let currentGenreQuick = "Todos";
+let currentSortMode = localStorage.getItem("denerSortMode") || "default_recommended";
+
+function getRemovedTitles(){
+  try { return JSON.parse(localStorage.getItem("denerRemovedTitles") || "[]"); } catch(e){ return []; }
+}
+function saveRemovedTitles(list){
+  localStorage.setItem("denerRemovedTitles", JSON.stringify(list));
+}
+function normalizeTitleKey(v){
+  return cleanDisplayTitle(String(v || "")).trim().toLowerCase();
+}
+
+function parseDurationMinutes(v){
+  const str = String(v || "").toLowerCase();
+  const h = /(\d+)\s*h/.exec(str);
+  const m = /(\d+)\s*m/.exec(str);
+  return (h ? Number(h[1]) * 60 : 0) + (m ? Number(m[1]) : 0);
+}
+function ratingValue(v){
+  const map = {"L":0,"10":10,"12":12,"14":14,"16":16,"18":18};
+  return map[String(v || "L")] ?? 0;
+}
+function getMovieMeta(m){
+  const data = getData()[m.title] || {};
+  return {
+    createdAt: Number(m.createdAt || 0),
+    watched: !!data.watched
+  };
+}
+function getSortedMovies(list){
+  const arr = [...list];
+  arr.sort((a,b)=>{
+    const ma = getMovieMeta(a), mb = getMovieMeta(b);
+
+    const recommendedScore = (movie) => {
+      const quality = Number(movie.quality || 0);
+      const imdb = Number(movie.imdb || 0) * 10;
+      const rt = Number(movie.rt || 0);
+      const suspense = Number(movie.suspense || 0) * 3;
+      const impact = Number(movie.impact || 0) * 3;
+      const text = `${movie.genre || ""} ${movie.title || ""} ${movie.synopsis || ""}`.toLowerCase();
+
+      let bonus = 0;
+      if(/suspense|crime|mist[eé]rio|misterio|investig|thriller/.test(text)) bonus += 4;
+      if(/fatos reais|hist[oó]ria|historia|true story|based on/.test(text)) bonus += 3;
+      if(/romance leve|aventura infantil/.test(text)) bonus -= 1;
+
+      return quality * 0.55 + imdb * 0.18 + rt * 0.14 + suspense + impact + bonus;
+    };
+
+    switch(currentSortMode){
+      case "default_recommended":
+        return recommendedScore(b) - recommendedScore(a) || (b.quality||0) - (a.quality||0);
+      case "newest":
+        return (mb.createdAt||0) - (ma.createdAt||0) || (b.quality||0)-(a.quality||0);
+      case "oldest":
+        return (ma.createdAt||0) - (mb.createdAt||0) || (b.quality||0)-(a.quality||0);
+      case "duration_desc":
+        return parseDurationMinutes(b.duration)-parseDurationMinutes(a.duration) || (b.quality||0)-(a.quality||0);
+      case "duration_asc":
+        return parseDurationMinutes(a.duration)-parseDurationMinutes(b.duration) || (b.quality||0)-(a.quality||0);
+      case "rating_desc":
+        return ratingValue(b.rating)-ratingValue(a.rating) || (b.quality||0)-(a.quality||0);
+      case "rating_asc":
+        return ratingValue(a.rating)-ratingValue(b.rating) || (b.quality||0)-(a.quality||0);
+      case "suspense_desc":
+        return Number(b.suspense||0)-Number(a.suspense||0) || (b.quality||0)-(a.quality||0);
+      default:
+        return (b.quality||0)-(a.quality||0);
+    }
+  });
+  return arr;
+}
+function openSortSheet(){
+  ensureFloatingLayers();
+  document.getElementById("sortSheet").classList.add("open");
+  lockBody();
+}
+function closeSortSheet(){
+  document.getElementById("sortSheet").classList.remove("open");
+  unlockBody();
+}
+function setSortMode(mode){
+  currentSortMode = mode;
+  localStorage.setItem("denerSortMode", mode);
+  closeSortSheet();
+  requestAnimationFrame(() => {
+    render(movies);
+    applyFilter();
+  });
+}
+function openGptGenerator(e){
+  if(e) e.preventDefault();
+  const url = "https://chatgpt.com/g/g-69c8fec3c48481918fdeac0f0aa54fa2-filme-codigo-gpt";
+  try{
+    const win = window.open(url, "_blank");
+    if(!win){
+      window.location.href = url;
+    }
+  }catch(err){
+    window.location.href = url;
+  }
+}
+
+function getVisibleMovies(){
+  return movies.filter(m => {
+    const d = getData()[m.title] || {};
+    const watched = !!d.watched;
+    if(currentViewMode === "watchlist" && watched) return false;
+    if(currentViewMode === "watched" && !watched) return false;
+    return true;
+  });
+}
+
+
+function getMovieOverrides(){
+  try { return JSON.parse(localStorage.getItem("denerMovieOverrides") || "{}"); } catch(e){ return {}; }
+}
+function saveMovieOverrides(obj){
+  localStorage.setItem("denerMovieOverrides", JSON.stringify(obj));
+}
+
+function getCustomMovies(){
+  try { return JSON.parse(localStorage.getItem("denerCustomMovies") || "[]"); } catch(e){ return []; }
+}
+function saveCustomMovies(list){
+  localStorage.setItem("denerCustomMovies", JSON.stringify(list));
+}
+
+function ensureFloatingLayers(){
+  const addModal = document.getElementById("addMovieModal");
+  const rateModal = document.getElementById("ratePrompt");
+  const themeSheet = document.getElementById("themeSheet");
+  const sortSheet = document.getElementById("sortSheet");
+  if(addModal && addModal.parentElement !== document.body) document.body.appendChild(addModal);
+  if(rateModal && rateModal.parentElement !== document.body) document.body.appendChild(rateModal);
+  if(themeSheet && themeSheet.parentElement !== document.body) document.body.appendChild(themeSheet);
+  if(sortSheet && sortSheet.parentElement !== document.body) document.body.appendChild(sortSheet);
+}
+function lockBody(){ document.body.classList.add("modal-open"); }
+function unlockBody(){
+  const addOpen = document.getElementById("addMovieModal")?.classList.contains("open");
+  const rateOpen = document.getElementById("ratePrompt")?.classList.contains("open");
+  const themeOpen = document.getElementById("themeSheet")?.classList.contains("open");
+  const sortOpen = document.getElementById("sortSheet")?.classList.contains("open");
+  if(!addOpen && !rateOpen && !themeOpen && !sortOpen) document.body.classList.remove("modal-open");
+}
+
+function updateStats(){
+  const visible = getVisibleMovies();
+  const ordered = getSortedMovies(visible);
+  document.getElementById("statTotal").textContent = String(visible.length);
+  document.getElementById("statTop").textContent = ordered[0] ? ordered[0].title : "—";
+
+  const familyTop = [...visible].sort((a,b)=>(b.family||0)-(a.family||0) || (b.quality||0)-(a.quality||0))[0];
+  const suspenseTop = [...visible].sort((a,b)=>(b.suspense||0)-(a.suspense||0) || (b.quality||0)-(a.quality||0))[0];
+  const mysteryTop = [...visible].filter(m => /mistério|misterio|mystery|enig|investig|coerência|coherence/i.test(`${m.genre} ${m.title} ${m.synopsis}`)).sort((a,b)=>(b.quality||0)-(a.quality||0))[0];
+  const realTop = [...visible].filter(m => /fatos reais|história|historia|based on|biografia|true story|argo|spotlight|mudou o jogo|joy|iwo jima/i.test(`${m.genre} ${m.title} ${m.synopsis}`)).sort((a,b)=>(b.quality||0)-(a.quality||0))[0];
+
+  document.getElementById("statFamily").textContent = familyTop ? familyTop.title : "—";
+  document.getElementById("statSuspense").textContent = suspenseTop ? suspenseTop.title : "—";
+  const mysteryEl = document.getElementById("statMystery");
+  const realEl = document.getElementById("statReal");
+  if(mysteryEl) mysteryEl.textContent = mysteryTop ? mysteryTop.title : "—";
+  if(realEl) realEl.textContent = realTop ? realTop.title : "—";
+}
+function sanitizeMovie(m){
+  return {
+    title: m.title || "Sem título",
+    wiki: m.wiki || (m.title || "Sem_titulo").replaceAll(" ", "_"),
+    rt: Number(m.rt || 0),
+    imdb: Number(m.imdb || 0),
+    genre: m.genre || "Drama",
+    duration: m.duration || "Não informado",
+    rating: m.rating || "14",
+    nudity: m.nudity || "Não",
+    streaming: Array.isArray(m.streaming) ? m.streaming : String(m.streaming || "Busca streaming").split(",").map(s=>s.trim()).filter(Boolean),
+    google: m.google || `https://www.google.com/search?q=${encodeURIComponent((m.title||"filme")+" filme")}`,
+    synopsis: m.synopsis || "Sinopse não informada.",
+    trailer: m.trailer || `https://www.youtube.com/results?search_query=${encodeURIComponent((m.title||"filme")+" trailer legendado")}`,
+    family: Math.max(1, Math.min(5, Number(m.family || 3))),
+    suspense: Math.max(1, Math.min(5, Number(m.suspense || 3))),
+    impact: Math.max(1, Math.min(5, Number(m.impact || 3))),
+    quality: Math.max(1, Math.min(100, Number(m.quality || 75))),
+    poster: m.poster || "",
+    createdAt: Number(m.createdAt || 0)
+  };
+}
+function mergeMovies(){
+  const overrides = getMovieOverrides();
+  const hidden = JSON.parse(localStorage.getItem("denerHiddenTitles") || "[]");
+  const removed = getRemovedTitles();
+
+  let customRaw = getCustomMovies();
+  let customTouched = false;
+  customRaw = customRaw.map((item, idx) => {
+    if(!item.createdAt){
+      customTouched = true;
+      return {...item, createdAt: Date.now() - ((customRaw.length - idx) * 1000)};
+    }
+    return item;
+  });
+  if(customTouched) saveCustomMovies(customRaw);
+
+  const isBlocked = (title) => {
+    const key = normalizeTitleKey(title);
+    return hidden.some(t => normalizeTitleKey(t) === key) || removed.some(t => normalizeTitleKey(t) === key);
+  };
+
+  const baseMerged = baseMovies
+    .map(movie => sanitizeMovie({...movie, ...(overrides[movie.title] || {})}))
+    .filter(movie => !isBlocked(movie.title));
+
+  const custom = customRaw
+    .map(sanitizeMovie)
+    .filter(movie => !isBlocked(movie.title));
+
+  movies = [...baseMerged, ...custom];
+  updateStats();
+}
+function parseTitleFromSource(raw){
+  const input = (raw || "").trim();
+  if(!input) return "";
+  try{
+    const url = new URL(input);
+    if(url.hostname.includes("google.")){
+      const q = url.searchParams.get("q") || "";
+      return decodeURIComponent(q).replace(/\+/g," ").replace(/\b(filme|onde assistir|trailer|imdb|rotten tomatoes)\b/gi,"").trim();
+    }
+    if(url.hostname.includes("wikipedia.org")){
+      return decodeURIComponent(url.pathname.split("/").pop() || "").replaceAll("_"," ").trim();
+    }
+    if(url.hostname.includes("imdb.com")){
+      return "";
+    }
+    const last = decodeURIComponent((url.pathname.split("/").pop() || "").replaceAll("_"," ").replace(/-/g," "));
+    return last.replace(/\b(filme|movie)\b/gi,"").trim();
+  }catch(e){
+    return input;
+  }
+}
+
+async function wikiOpenSearch(query, lang="pt"){
+  const url = `https://${lang}.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=6&namespace=0&format=json&origin=*`;
+  try{
+    const res = await fetch(url, {cache:"no-store"});
+    const data = await res.json();
+    const titles = data?.[1] || [];
+    const descs = data?.[2] || [];
+    const links = data?.[3] || [];
+    return titles.map((t,i)=>({title:t, desc:descs[i] || "", link:links[i] || "", lang}));
+  }catch(e){
+    return [];
+  }
+}
+function cleanDisplayTitle(title=""){
+  return String(title).replace(/\s*\((filme|série de televisão|movie|film)\)\s*$/i,"").replace(/_/g," ").trim();
+}
+async function wikiSearchCandidates(query){
+  const pt = await wikiOpenSearch(query, "pt");
+  const en = pt.length ? [] : await wikiOpenSearch(query, "en");
+  const lowered = query.toLowerCase();
+  return [...pt, ...en]
+    .map(x => ({...x, title: cleanDisplayTitle(x.title)}))
+    .sort((a,b)=>{
+      const ap = a.title.toLowerCase().includes(lowered) ? 1 : 0;
+      const bp = b.title.toLowerCase().includes(lowered) ? 1 : 0;
+      return bp - ap;
+    });
+}
+async function getWikiPageHtml(pageTitle, lang="pt"){
+  const url = `https://${lang}.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=text|displaytitle&formatversion=2&format=json&origin=*`;
+  const res = await fetch(url, {cache:"no-store"});
+  const data = await res.json();
+  return { html: data?.parse?.text || "", displaytitle: data?.parse?.displaytitle || pageTitle };
+}
+function extractInfoboxData(htmlString){
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlString, "text/html");
+  const rows = [...doc.querySelectorAll(".infobox tr")];
+  const info = {};
+  rows.forEach(row=>{
+    const th = row.querySelector("th");
+    const td = row.querySelector("td");
+    if(!th || !td) return;
+    const key = th.textContent.trim().toLowerCase();
+    const val = td.textContent.replace(/\[[^\]]+\]/g,"").replace(/\s+/g," ").trim();
+    info[key] = val;
+  });
+  return info;
+}
+function pickInfoboxValue(info, patterns){
+  const entries = Object.entries(info || {});
+  for(const [k,v] of entries){
+    if(patterns.some(p => p.test(k)) && v) return v;
+  }
+  return "";
+}
+async function fetchWikiWikitext(pageTitle, lang="pt"){
+  const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=revisions&rvprop=content&rvslots=main&formatversion=2&format=json&origin=*`;
+  try{
+    const res = await fetch(url, {cache:"no-store"});
+    const data = await res.json();
+    return data?.query?.pages?.[0]?.revisions?.[0]?.slots?.main?.content || "";
+  }catch(e){
+    return "";
+  }
+}
+function parseSignalsFromText(text=""){
+  const clean = String(text || "");
+  let imdb = "";
+  let rt = "";
+  let duration = "";
+  const imdbMatch = clean.match(/IMDb[^0-9]{0,25}(\d\.\d)/i) || clean.match(/(\d\.\d)\/10[^.\n]{0,20}IMDb/i);
+  if(imdbMatch) imdb = imdbMatch[1];
+  const rtMatch = clean.match(/Rotten Tomatoes[^0-9%]{0,50}(\d{1,3})%/i) || clean.match(/(\d{1,3})%\s*(?:de aprovação|approval)[^.\n]{0,40}Rotten Tomatoes/i);
+  if(rtMatch) rt = rtMatch[1];
+  const durMatch = clean.match(/\b(\d{1,2}\s*h(?:oras?)?\s*\d{0,2}\s*m(?:in)?|\d{1,3}\s*min(?:utos)?|\d{1,2}h\s*\d{0,2}m)\b/i);
+  if(durMatch) duration = durMatch[1];
+  const streamers = [];
+  ["Netflix","Prime Video","Max","Disney+","Paramount+","MUBI","Globoplay","Apple TV"].forEach(s=>{
+    if(new RegExp(s.replace("+","\\+"),"i").test(clean)) streamers.push(s);
+  });
+  return { imdb, rt, duration, streaming: [...new Set(streamers)] };
+}
+async function fetchSearchSignals(title){
+  const q = encodeURIComponent(`${title} IMDb Rotten Tomatoes duração onde assistir`);
+  const urls = [
+    `https://r.jina.ai/http://www.google.com/search?q=${q}`,
+    `https://r.jina.ai/http://www.bing.com/search?q=${q}`
+  ];
+  for(const u of urls){
+    try{
+      const res = await fetch(u, {cache:"no-store"});
+      const txt = await res.text();
+      const signals = parseSignalsFromText(txt);
+      if(signals.imdb || signals.rt || signals.duration || signals.streaming?.length) return signals;
+    }catch(e){}
+  }
+  return { imdb:"", rt:"", duration:"", streaming:[] };
+}
+async function fetchWikiDetails(pageTitle, lang="pt", preferredTitle=""){
+  const safeTitle = pageTitle.replaceAll(" ", "_");
+  let synopsis = "", poster = "", normalizedTitle = preferredTitle || cleanDisplayTitle(pageTitle), year = "", duration = "", genre = "", imdb = "", rt = "", wiki = safeTitle, streaming = [];
+  try{
+    const res = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(safeTitle)}`, {cache:"no-store"});
+    const data = await res.json();
+    normalizedTitle = preferredTitle || cleanDisplayTitle(data.title || normalizedTitle);
+    synopsis = data.extract || "";
+    poster = data.thumbnail?.source || "";
+    year = (data.description || "").match(/\b(19|20)\d{2}\b/)?.[0] || "";
+  }catch(e){}
+  try{
+    const parsed = await getWikiPageHtml(safeTitle, lang);
+    const info = extractInfoboxData(parsed.html);
+    duration = pickInfoboxValue(info, [/dura[cç][aã]o/i,/running time/i,/tempo de execu/i]);
+    genre = pickInfoboxValue(info, [/g[eê]nero/i,/genre/i]);
+    const infoSignals = parseSignalsFromText(Object.values(info).join(" • "));
+    if(infoSignals.imdb) imdb = infoSignals.imdb;
+    if(infoSignals.rt) rt = infoSignals.rt;
+    if(infoSignals.duration && !duration) duration = infoSignals.duration;
+  }catch(e){}
+  try{
+    const wikiText = await fetchWikiWikitext(safeTitle, lang);
+    const textSignals = parseSignalsFromText(wikiText);
+    imdb = imdb || textSignals.imdb;
+    rt = rt || textSignals.rt;
+    duration = duration || textSignals.duration;
+  }catch(e){}
+  try{
+    const searchSignals = await fetchSearchSignals(preferredTitle || normalizedTitle);
+    imdb = imdb || searchSignals.imdb;
+    rt = rt || searchSignals.rt;
+    duration = duration || searchSignals.duration;
+    streaming = searchSignals.streaming || [];
+  }catch(e){}
+  duration = String(duration || "")
+    .replace(/(\d+)\s*minutos?/i, "$1 min")
+    .replace(/(\d+)\s*h(?:oras?)?\s*(\d+)\s*m.*/i, "$1h $2m")
+    .replace(/(\d+)\s*h(?:oras?)?/i, "$1h")
+    .trim();
+  if(!poster){
+    try{
+      const res2 = await fetch(`https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(safeTitle)}&prop=pageimages&format=json&pithumbsize=500&origin=*`, {cache:"no-store"});
+      const data2 = await res2.json();
+      const firstPage = Object.values(data2?.query?.pages || {})[0];
+      poster = firstPage?.thumbnail?.source || poster;
+    }catch(e){}
+  }
+  return {title: normalizedTitle, synopsis, poster, year, wiki, duration, genre, imdb, rt, streaming, lang};
+}
+function inferGenre(text){
+  const t = (text || "").toLowerCase();
+  if(/serial killer|assassino|investiga|polic|máfia|crime|sequestro|detetive|investiga[cç][aã]o/.test(t)) return "Suspense/Crime";
+  if(/guerra|batalha|soldado|segunda guerra/.test(t)) return "Guerra/Drama";
+  if(/monstro|sobrenatural|terror|criatura|mansão|medo|fantasma/.test(t)) return "Terror";
+  if(/ficção científica|sonho|tempo|futuro|realidades|cometa|máquina|alien|extraterrestre/.test(t)) return "Ficção Científica";
+  if(/aventur|fantasia|tesouro/.test(t)) return "Aventura/Fantasia";
+  if(/romance|amor|família|casamento/.test(t)) return "Romance/Drama";
+  if(/esporte|time|beisebol|futebol/.test(t)) return "Drama/Esporte";
+  if(/jornalista|baseado em fatos|fatos reais|real/.test(t)) return "Drama/Fatos Reais";
+  if(/comédia/.test(t)) return "Comédia/Drama";
+  return "Drama";
+}
+function inferRating(genre, synopsis){
+  const t = `${genre} ${synopsis}`.toLowerCase();
+  if(/terror pesado|explícit|extremo/.test(t)) return "18";
+  if(/terror|máfia|crime|serial|violência|assassino|sequestro/.test(t)) return "16";
+  if(/suspense|drama|ficção/.test(t)) return "14";
+  if(/romance|família|aventura/.test(t)) return "12";
+  return "12";
+}
+function inferNudity(genre, synopsis){
+  const t = `${genre} ${synopsis}`.toLowerCase();
+  return /sexual|nudez|sensual/.test(t) ? "Sim" : "Não";
+}
+function inferThermos(genre, synopsis, quality){
+  const t = `${genre} ${synopsis}`.toLowerCase();
+  let family = 3, suspense = 2, impact = Math.max(1, Math.min(5, Math.round((Number(quality||75)-50)/10)));
+  if(/família|aventura|comédia|romance|esporte/.test(t)) family = 4;
+  if(/terror|crime|serial|assassino|máfia|mistério/.test(t)) family = 1;
+  if(/terror|mistério|crime|suspense|assassino|sequestro/.test(t)) suspense = 5;
+  else if(/ficção|guerra/.test(t)) suspense = 3;
+  else if(/romance|família|esporte/.test(t)) suspense = 1;
+  impact = Math.max(1, Math.min(5, impact + (/guerra|fatos reais|máfia|grande escândalo/.test(t)?1:0)));
+  return {family, suspense, impact};
+}
+function estimateQuality(imdb, rt, genre, synopsis){
+  const imdbVal = Number(imdb || 0);
+  const rtVal = Number(rt || 0);
+  let score = 74;
+  if(imdbVal && rtVal) score = (imdbVal * 10 * 0.62) + (rtVal * 0.38);
+  else if(imdbVal) score = imdbVal * 10;
+  else if(rtVal) score = 62 + (rtVal * 0.30);
+  const t = `${genre} ${synopsis}`.toLowerCase();
+  if(/suspense|crime|fatos reais|mistério|ficção científica/.test(t)) score += 4;
+  if(/aventura|família|romance|esporte/.test(t)) score += 1;
+  if(/terror pesado|slasher/.test(t)) score -= 2;
+  if(!imdbVal && !rtVal && /villeneuve|nolan|scorsese|coen|fincher/.test(t)) score += 6;
+  return Math.max(58, Math.min(98, Math.round(score)));
+}
+function buildGoogleLink(title){
+  return `https://www.google.com/search?q=${encodeURIComponent(title + " filme")}`;
+}
+function buildTrailerLink(title){
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(title + " trailer legendado")}`;
+}
+function getField(id){ return document.getElementById(id); }
+
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+function normalizeGptPayload(obj){
+  const imdb = Number(obj.imdb || 0);
+  const rt = Number(obj.rotten || obj.rt || 0);
+  const googleScore = Number(obj.google_user_score || 0);
+  const metacritic = Number(obj.metacritic || 0);
+  const computedQuality = obj.quality_score || estimateQuality(imdb, rt, obj.genre || "", obj.synopsis || "");
+  return sanitizeMovie({
+    title: obj.title_pt || obj.title || obj.title_original || "Sem título",
+    synopsis: obj.synopsis || "",
+    genre: obj.genre || inferGenre(`${obj.title_pt || obj.title_original || ""} ${obj.synopsis || ""}`),
+    duration: obj.duration || "Não informado",
+    imdb,
+    rt,
+    quality: computedQuality,
+    rating: String(obj.rating_br || obj.rating || inferRating(obj.genre || "", obj.synopsis || "")),
+    nudity: obj.nudity || inferNudity(obj.genre || "", obj.synopsis || ""),
+    streaming: Array.isArray(obj.streaming) ? obj.streaming : ["Busca streaming"],
+    google: obj.google_url || buildGoogleLink(obj.title_pt || obj.title_original || obj.title || "filme"),
+    trailer: obj.trailer_url || buildTrailerLink(obj.title_pt || obj.title_original || obj.title || "filme"),
+    wiki: obj.wiki || (obj.title_original || obj.title_pt || obj.title || "Sem_titulo").replaceAll(" ","_"),
+    poster: obj.poster_url || obj.poster || "",
+    family: Number(obj.family || 3),
+    suspense: Number(obj.suspense || 3),
+    impact: Number(obj.impact || 3),
+    title_original: obj.title_original || "",
+    year: Number(obj.year || 0),
+    country: obj.country || "",
+    google_user_score: googleScore,
+    metacritic
+  });
+}
+function extractGptJsonBlock(text){
+  const start = text.indexOf(":::FILME_GPT_V1:::");
+  const end = text.indexOf(":::FIM_FILME_GPT_V1:::");
+  if(start === -1 || end === -1 || end <= start) return "";
+  return text.slice(start + ":::FILME_GPT_V1:::".length, end).trim();
+}
+function clearGptCode(){
+  getField("gptCodeInput").value = "";
+  document.getElementById("gptCodeStatus").textContent = "Cole o código gerado pelo seu GPT. O sistema vai ler, exibir a barra de leitura e preencher os campos automaticamente.";
+  document.getElementById("gptProgressWrap").style.display = "none";
+  document.getElementById("gptProgressFill").style.width = "0%";
+}
+async function animateGptProgress(){
+  const wrap = document.getElementById("gptProgressWrap");
+  const fill = document.getElementById("gptProgressFill");
+  wrap.style.display = "block";
+  fill.style.width = "0%";
+  for (const pct of [12, 28, 44, 61, 78, 91]) {
+    fill.style.width = pct + "%";
+    await sleep(90);
+  }
+}
+async function pasteGptCode(){
+  const field = getField("gptCodeInput");
+  const status = document.getElementById("gptCodeStatus");
+  try{
+    if(navigator.clipboard && navigator.clipboard.readText){
+      const txt = await navigator.clipboard.readText();
+      if(txt){
+        field.value = txt;
+        status.textContent = "Código colado. Toque em Ler código GPT.";
+        return;
+      }
+    }
+    throw new Error("clipboard-empty");
+  }catch(e){
+    field.focus();
+    field.select();
+    status.textContent = "Seu Android bloqueou a colagem automática aqui. Toque e segure no campo acima para colar manualmente.";
+  }
+}
+async function readGptCode(){
+  const status = document.getElementById("gptCodeStatus");
+  const raw = getField("gptCodeInput").value.trim();
+  if(!raw){
+    status.textContent = "Cole primeiro um código GPT válido.";
+    return;
+  }
+  status.textContent = "Lendo código GPT...";
+  await animateGptProgress();
+  try{
+    const jsonBlock = extractGptJsonBlock(raw);
+    if(!jsonBlock) throw new Error("Bloco FILME_GPT_V1 não encontrado.");
+    const parsed = JSON.parse(jsonBlock);
+    const normalized = normalizeGptPayload(parsed);
+    fillAddForm(normalized);
+    recalculateFromForm();
+    document.getElementById("gptProgressFill").style.width = "100%";
+    status.textContent = "Código lido com sucesso. Confira os dados, edite se quiser e depois salve o filme.";
+    document.getElementById("previewPoster")?.scrollIntoView({behavior:"smooth", block:"center"});
+  }catch(err){
+    document.getElementById("gptProgressFill").style.width = "0%";
+    document.getElementById("gptProgressWrap").style.display = "none";
+    status.textContent = "Não consegui ler esse código GPT. Verifique se ele está completo e no formato FILME_GPT_V1.";
+  }
+}
+function openEditMovie(title){
+  const movie = movies.find(m => (m.title || "").toLowerCase() === String(title).toLowerCase());
+  if(!movie) return;
+  document.getElementById("movieModalTitle").textContent = "Editar filme";
+  document.getElementById("submitMovieBtn").textContent = "Salvar alterações";
+  document.getElementById("f_originalTitle").value = movie.title || "";
+  fillAddForm(movie);
+  openAddMovieModal();
+}
+function fillAddForm(m){
+  getField("f_title").value = m.title || "";
+  getField("f_synopsis").value = m.synopsis || "";
+  getField("f_genre").value = m.genre || "";
+  getField("f_duration").value = m.duration || "";
+  getField("f_imdb").value = m.imdb || "";
+  getField("f_rt").value = m.rt || "";
+  getField("f_quality").value = m.quality || "";
+  getField("f_rating").value = m.rating || "12";
+  getField("f_nudity").value = m.nudity || "Não";
+  getField("f_streaming").value = Array.isArray(m.streaming) ? m.streaming.join(", ") : (m.streaming || "");
+  getField("f_family").value = m.family || 3;
+  getField("f_suspense").value = m.suspense || 3;
+  getField("f_impact").value = m.impact || 3;
+  getField("f_google").value = m.google || "";
+  getField("f_trailer").value = m.trailer || "";
+  getField("f_wiki").value = m.wiki || "";
+  getField("f_poster").value = m.poster || "";
+  if(getField("sourceInput") && !getField("sourceInput").value && m.title) getField("sourceInput").value = m.title;
+  updatePreview();
+}
+function clearAddMovieForm(){
+  document.getElementById("movieModalTitle").textContent = "Adicionar novo filme";
+  document.getElementById("submitMovieBtn").textContent = "Adicionar à lista";
+  getField("f_originalTitle").value = "";
+  ["sourceInput","gptCodeInput","f_title","f_synopsis","f_genre","f_duration","f_imdb","f_rt","f_quality","f_streaming","f_google","f_trailer","f_wiki","f_poster"].forEach(id=>getField(id).value="");
+  if(document.getElementById("gptProgressWrap")) document.getElementById("gptProgressWrap").style.display = "none";
+  if(document.getElementById("gptProgressFill")) document.getElementById("gptProgressFill").style.width = "0%";
+  if(document.getElementById("gptCodeStatus")) document.getElementById("gptCodeStatus").textContent = "Cole o código gerado pelo seu GPT. O sistema vai ler, exibir a barra de leitura e preencher os campos automaticamente.";
+  getField("f_rating").value = "12";
+  getField("f_nudity").value = "Não";
+  getField("f_family").value = 3;
+  getField("f_suspense").value = 3;
+  getField("f_impact").value = 3;
+  document.getElementById("candidateWrap").innerHTML = "";
+  document.getElementById("autoFillStatus").textContent = "Dica: link da Wikipédia costuma ser o mais preciso.";
+  updatePreview();
+}
+function openAddMovieModal(){
+  ensureFloatingLayers();
+  const modal = document.getElementById("addMovieModal");
+  modal.classList.add("open");
+  lockBody();
+  window.scrollTo({top:0, behavior:"instant"});
+  modal.scrollTop = 0;
+  updatePreview();
+}
+function closeAddMovieModal(){
+  document.getElementById("addMovieModal").classList.remove("open");
+  unlockBody();
+}
+function recalculateFromForm(){
+  const imdb = Number(getField("f_imdb").value || 0);
+  const rt = Number(getField("f_rt").value || 0);
+  const genre = getField("f_genre").value;
+  const synopsis = getField("f_synopsis").value;
+  const rating = inferRating(genre, synopsis);
+  const nudity = inferNudity(genre, synopsis);
+  const quality = estimateQuality(imdb, rt, genre, synopsis);
+  const thermo = inferThermos(genre, synopsis, quality);
+  getField("f_quality").value = quality;
+  if(!getField("f_rating").dataset.manual) getField("f_rating").value = rating;
+  if(!getField("f_nudity").dataset.manual) getField("f_nudity").value = nudity;
+  getField("f_family").value = thermo.family;
+  getField("f_suspense").value = thermo.suspense;
+  getField("f_impact").value = thermo.impact;
+  updatePreview();
+}
+async function autoFillMovie(){
+  const raw = getField("sourceInput").value.trim();
+  const status = document.getElementById("autoFillStatus");
+  const wrap = document.getElementById("candidateWrap");
+  wrap.innerHTML = "";
+  if(!raw){ status.textContent = "Cole um nome ou link primeiro."; return; }
+
+  status.textContent = "Buscando automaticamente em várias fontes...";
+  let query = parseTitleFromSource(raw);
+  if(!query){
+    status.textContent = "Não consegui entender o link. Tente colar um link do Google/Wikipédia/IMDb ou escreva o nome do filme.";
+    return;
+  }
+
+  const preferredTitle = cleanDisplayTitle(query);
+  const candidates = await wikiSearchCandidates(preferredTitle);
+  if(!candidates.length){
+    status.textContent = "Não encontrei candidatos automáticos. Preencha manualmente abaixo, ou tente um link da Wikipédia/IMDb junto do nome.";
+    fillAddForm({
+      title: preferredTitle,
+      synopsis: "",
+      genre: "Drama",
+      duration: "Não informado",
+      imdb: "",
+      rt: "",
+      quality: 76,
+      rating: "12",
+      nudity: "Não",
+      streaming: ["Busca streaming"],
+      google: buildGoogleLink(preferredTitle),
+      trailer: buildTrailerLink(preferredTitle),
+      wiki: preferredTitle.replaceAll(" ","_"),
+      poster: "",
+      family: 3, suspense: 3, impact: 3
+    });
+    return;
+  }
+
+  const autoCandidate = candidates[0];
+  if(candidates.length === 1 || autoCandidate.lang === "pt"){
+    const details = await fetchWikiDetails(autoCandidate.title, autoCandidate.lang || "pt", preferredTitle);
+    const title = cleanDisplayTitle(preferredTitle || details.title || autoCandidate.title);
+    const synopsis = details.synopsis || autoCandidate.desc || "";
+    const genre = details.genre || inferGenre(`${title} ${synopsis}`);
+    const imdb = details.imdb || "";
+    const rt = details.rt || "";
+    const quality = estimateQuality(imdb, rt, genre, synopsis);
+    const thermos = inferThermos(genre, synopsis, quality);
+    fillAddForm({
+      title,
+      synopsis,
+      genre,
+      duration: details.duration || "Não informado",
+      imdb,
+      rt,
+      quality,
+      rating: inferRating(genre, synopsis),
+      nudity: inferNudity(genre, synopsis),
+      streaming: (details.streaming && details.streaming.length ? details.streaming : ["Busca streaming"]),
+      google: buildGoogleLink(title),
+      trailer: buildTrailerLink(title),
+      wiki: details.wiki || autoCandidate.title.replaceAll(" ","_"),
+      poster: details.poster || "",
+      family: thermos.family,
+      suspense: thermos.suspense,
+      impact: thermos.impact
+    });
+    status.textContent = `Preenchimento automático concluído. ${imdb || rt || details.duration ? "Encontrei dados úteis." : "Revise os campos que ficaram faltando."}`;
+    return;
+  }
+
+  status.textContent = `Encontrei ${candidates.length} opções. Toque na correta.`;
+  candidates.forEach(c=>{
+    const btn = document.createElement("button");
+    btn.className = "candidateBtn";
+    btn.innerHTML = `<strong>${cleanDisplayTitle(c.title)}</strong><div class="smallHelp">${c.desc || "Sem descrição rápida."}</div>`;
+    btn.onclick = async ()=>{
+      status.textContent = "Carregando detalhes...";
+      const details = await fetchWikiDetails(c.title, c.lang || "pt", preferredTitle);
+      const title = cleanDisplayTitle(preferredTitle || details.title || c.title);
+      const synopsis = details.synopsis || c.desc || "";
+      const genre = details.genre || inferGenre(`${title} ${synopsis}`);
+      const imdb = details.imdb || "";
+      const rt = details.rt || "";
+      const quality = estimateQuality(imdb, rt, genre, synopsis);
+      const thermos = inferThermos(genre, synopsis, quality);
+      fillAddForm({
+        title,
+        synopsis,
+        genre,
+        duration: details.duration || "Não informado",
+        imdb,
+        rt,
+        quality,
+        rating: inferRating(genre, synopsis),
+        nudity: inferNudity(genre, synopsis),
+        streaming: (details.streaming && details.streaming.length ? details.streaming : ["Busca streaming"]),
+        google: buildGoogleLink(title),
+        trailer: buildTrailerLink(title),
+        wiki: details.wiki || c.title.replaceAll(" ","_"),
+        poster: details.poster || "",
+        family: thermos.family,
+        suspense: thermos.suspense,
+        impact: thermos.impact
+      });
+      wrap.innerHTML = "";
+      status.textContent = `Detalhes carregados. ${imdb || rt || details.duration ? "Encontrei informações extras automaticamente." : "Revise e complemente o que faltar."}`;
+    };
+    wrap.appendChild(btn);
+  });
+}
+function previewPositionText(quality){
+  mergeMovies();
+  const temp = [...movies, sanitizeMovie(collectFormMovie())].sort((a,b)=>Number(b.quality||0)-Number(a.quality||0));
+  const idx = temp.findIndex(m => m.title === getField("f_title").value.trim());
+  if(idx < 0) return "";
+  return `Entrará aproximadamente na posição #${idx+1}`;
+}
+function updatePreview(){
+  const title = getField("f_title").value.trim() || "Novo filme";
+  const genre = getField("f_genre").value.trim() || "Sem gênero";
+  const duration = getField("f_duration").value.trim() || "Sem duração";
+  const rating = getField("f_rating").value || "12";
+  const quality = getField("f_quality").value || "--";
+  const poster = getField("f_poster").value.trim();
+  document.getElementById("previewTitle").textContent = title;
+  document.getElementById("previewMeta").innerHTML = `${genre} • ${duration} • classificação ${rating} • qualidade ${quality}`;
+  document.getElementById("previewPoster").src = poster || "https://placehold.co/300x450/111827/E5E7EB?text=Poster";
+  document.getElementById("previewPosition").innerHTML = getField("f_title").value.trim() ? `<span class="positionBadge">${previewPositionText(Number(getField("f_quality").value || 75))}</span>` : "";
+}
+function collectFormMovie(){
+  return sanitizeMovie({
+    title: getField("f_title").value.trim(),
+    synopsis: getField("f_synopsis").value.trim(),
+    genre: getField("f_genre").value.trim(),
+    duration: getField("f_duration").value.trim(),
+    imdb: getField("f_imdb").value,
+    rt: getField("f_rt").value,
+    quality: getField("f_quality").value,
+    rating: getField("f_rating").value,
+    nudity: getField("f_nudity").value,
+    streaming: getField("f_streaming").value.split(",").map(s=>s.trim()).filter(Boolean),
+    google: getField("f_google").value.trim(),
+    trailer: getField("f_trailer").value.trim(),
+    wiki: getField("f_wiki").value.trim(),
+    poster: getField("f_poster").value.trim(),
+    family: getField("f_family").value,
+    suspense: getField("f_suspense").value,
+    impact: getField("f_impact").value
+  });
+}
+function addMovieFromForm(){
+  const movie = collectFormMovie();
+  const originalTitle = getField("f_originalTitle").value.trim();
+  if(!movie.title){
+    document.getElementById("autoFillStatus").textContent = "Preencha pelo menos o título.";
+    return;
+  }
+
+  let hidden = JSON.parse(localStorage.getItem("denerHiddenTitles") || "[]");
+  hidden = hidden.filter(t => normalizeTitleKey(t) !== normalizeTitleKey(movie.title));
+  localStorage.setItem("denerHiddenTitles", JSON.stringify(hidden));
+
+  let removed = getRemovedTitles();
+  removed = removed.filter(t => normalizeTitleKey(t) !== normalizeTitleKey(movie.title));
+  saveRemovedTitles(removed);
+
+  const baseExists = baseMovies.some(m => (m.title||"").toLowerCase() === (originalTitle || movie.title).toLowerCase());
+  if(baseExists){
+    const original = baseMovies.find(m => (m.title||"").toLowerCase() === (originalTitle || movie.title).toLowerCase());
+    movie.createdAt = Number((getMovieOverrides()[originalTitle || movie.title]?.createdAt) || original?.createdAt || 0);
+    const overrides = getMovieOverrides();
+    overrides[originalTitle || movie.title] = movie;
+    saveMovieOverrides(overrides);
+  } else {
+    const custom = getCustomMovies();
+    const existingIdx = custom.findIndex(m => normalizeTitleKey(m.title) === normalizeTitleKey(originalTitle || movie.title));
+    if(existingIdx >= 0){
+      movie.createdAt = Number(custom[existingIdx]?.createdAt || Date.now());
+      custom[existingIdx] = movie;
+    } else {
+      movie.createdAt = Date.now();
+      custom.push(movie);
+    }
+    saveCustomMovies(custom);
+  }
+
+  mergeMovies();
+  render(movies);
+  setTimeout(()=>{
+    applyState();
+    const cards = [...document.querySelectorAll(".card")];
+    const target = cards.find(c => normalizeTitleKey(c.querySelector("h2")?.innerText || "") === normalizeTitleKey(movie.title));
+    if(target){
+      target.scrollIntoView({behavior:"smooth", block:"center"});
+      target.classList.add("open");
+      target.animate([{transform:"scale(1.0)"},{transform:"scale(1.015)"},{transform:"scale(1.0)"}], {duration:700});
+    }
+  }, 150);
+  closeAddMovieModal();
+  clearAddMovieForm();
+}
+
+
+
+function setViewMode(mode){
+  currentViewMode = mode;
+  document.getElementById("tabWatchlist").classList.toggle("active", mode === "watchlist");
+  document.getElementById("tabWatched").classList.toggle("active", mode === "watched");
+  applyFilter();
+}
+function toggleSmartFilters(){
+  document.getElementById("smartFilters").classList.toggle("open");
+}
+function setGenreQuick(genre){
+  currentGenreQuick = genre;
+  applyFilter();
+}
+function clearAllFilters(){
+  currentGenreQuick = "Todos";
+  ["filterFamily","filterSuspense","filterImpact","filterQuality"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = 0;
+  });
+  ["filterFamilyVal","filterSuspenseVal","filterImpactVal","filterQualityVal"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = "0";
+  });
+  document.getElementById("search").value = "";
+  applyFilter();
+}
+function promptDeleteMovie(title){
+  currentDeleteTitle = title;
+  const ok = window.confirm(`Deseja remover "${title}" da lista?`);
+  if(ok){
+    confirmDeleteMovie();
+  }else{
+    currentDeleteTitle = "";
+  }
+}
+function closeDeleteConfirm(){
+  document.getElementById("confirmDeleteModal").classList.remove("open");
+  unlockBody();
+}
+function confirmDeleteMovie(){
+  const title = currentDeleteTitle;
+  if(!title) return;
+
+  const key = normalizeTitleKey(title);
+
+  let custom = getCustomMovies();
+  custom = custom.filter(item => normalizeTitleKey(item.title) !== key);
+  saveCustomMovies(custom);
+
+  const overrides = getMovieOverrides();
+  Object.keys(overrides).forEach(name => {
+    if(normalizeTitleKey(name) === key) delete overrides[name];
+  });
+  saveMovieOverrides(overrides);
+
+  const data = getData();
+  Object.keys(data).forEach(name => {
+    if(normalizeTitleKey(name) === key) delete data[name];
+  });
+  saveData(data);
+
+  let hidden = JSON.parse(localStorage.getItem("denerHiddenTitles") || "[]");
+  hidden = hidden.filter(name => normalizeTitleKey(name) !== key);
+  localStorage.setItem("denerHiddenTitles", JSON.stringify(hidden));
+
+  let removed = getRemovedTitles();
+  removed = removed.filter(name => normalizeTitleKey(name) !== key);
+  removed.push(title);
+  saveRemovedTitles(removed);
+
+  movies = movies.filter(item => normalizeTitleKey(item.title) !== key);
+
+  document.querySelectorAll(".card").forEach(card => {
+    const cardTitle = card.querySelector("h2")?.innerText || "";
+    if(normalizeTitleKey(cardTitle) === key){
+      card.remove();
+    }
+  });
+
+  currentDeleteTitle = "";
+
+  mergeMovies();
+  render(movies);
+  applyState();
+  applyFilter();
+  updateStats();
+}
+function qualityLabel(v) {
+  if (v >= 93) return "🔥 Excelente";
+  if (v >= 86) return "⭐ Muito forte";
+  if (v >= 78) return "👍 Muito bom";
+  if (v >= 70) return "🙂 Bom";
+  return "⚠️ Mais fraco";
+}
+
+function streamBadge(platform=""){
+  const p = String(platform || "");
+  const low = p.toLowerCase();
+  let color = "#94a3b8", label = p || "Streaming";
+  if(low.includes("netflix")) color = "#e50914";
+  else if(low.includes("prime")) color = "#10b981";
+  else if(low.includes("max")) color = "#3b82f6";
+  else if(low.includes("disney")) color = "#8b5cf6";
+  else if(low.includes("paramount")) color = "#0ea5e9";
+  else if(low.includes("mubi")) color = "#f59e0b";
+  return `<span class="streamDot" style="background:${color}"></span><span>${label}</span>`;
+}
+function streamLink(platform, title) {
+  const q = encodeURIComponent(title);
+  const template = platformSearch[platform] || "https://www.google.com/search?q={query}+onde+assistir";
+  return template.replace("{query}", q);
+}
+
+function posterApiUrl(wiki) {
+  return `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wiki)}&prop=pageimages&format=json&pithumbsize=500&origin=*`;
+}
+
+function posterSummaryUrl(wiki) {
+  return `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wiki)}`;
+}
+
+async function loadPoster(wiki, imgEl, fallbackEl) {
+  async function tryQueryApi() {
+    const res = await fetch(posterApiUrl(wiki), { cache: "no-store" });
+    const data = await res.json();
+    const pages = data?.query?.pages || {};
+    const firstPage = Object.values(pages)[0];
+    return firstPage?.thumbnail?.source || "";
+  }
+
+  async function trySummaryApi() {
+    const res = await fetch(posterSummaryUrl(wiki), {
+      headers: { "accept": "application/json" },
+      cache: "no-store"
+    });
+    const data = await res.json();
+    return data?.thumbnail?.source || "";
+  }
+
+  try {
+    let src = "";
+    try { src = await tryQueryApi(); } catch (e) {}
+    if (!src) {
+      try { src = await trySummaryApi(); } catch (e) {}
+    }
+    if (src) {
+      imgEl.referrerPolicy = "no-referrer";
+      imgEl.src = src;
+      imgEl.style.display = "block";
+      fallbackEl.style.display = "none";
+      imgEl.onerror = () => {
+        imgEl.style.display = "none";
+        fallbackEl.style.display = "flex";
+      };
+      return;
+    }
+    throw new Error("Sem thumbnail");
+  } catch (e) {
+    imgEl.style.display = "none";
+    fallbackEl.style.display = "flex";
+  }
+}
+
+function bar(width) {
+  return `<div class="meter"><i style="width:${width*20}%"></i></div>`;
+}
+
+function createCard(m) {
+  const streams = m.streaming.map(s => {
+      const key = (s || "").toLowerCase();
+      let extra = "";
+      if (key.includes("netflix")) extra = " netflix";
+      else if (key.includes("max")) extra = " max";
+      else if (key.includes("prime")) extra = " prime";
+      else if (key.includes("disney")) extra = " disney";
+      else if (key.includes("paramount")) extra = " paramount";
+      else if (key.includes("mubi")) extra = " mubi";
+      return `<a class="stream${extra}" href="${streamLink(s,m.title)}" target="_blank" rel="noopener">${s}</a>`;
+    }).join("");
+  const card = document.createElement("article");
+  card.className = "card";
+  card.dataset.search = [m.title, m.genre, (m.streaming||[]).join(" "), m.synopsis, m.rating, m.nudity, m.duration].join(" ").toLowerCase();
+
+  card.innerHTML = `
+    <div class="watchedOverlay" onclick="event.stopPropagation(); toggleWatchedFromOverlay(this)"><span>JÁ ASSISTIDO</span></div>
+    <div class="cardTop" onclick="toggleCard(this.parentElement)">
+      <div class="posterWrap">
+        <img alt="Capa de ${m.title}" style="display:none">
+        <div class="posterFallback">${m.title}</div>
+      </div>
+      <div class="meta">
+        <h2>${cleanDisplayTitle(m.title)}</h2>
+        <div class="sub">${m.genre} • ${m.duration} • <span class="rating-badge rating-${m.rating}">${m.rating === "L" ? "L" : m.rating}</span> • Nudez: ${m.nudity}</div>
+        <div class="tags">
+          <span class="tag">IMDb ${m.imdb}</span>
+          <span class="tag">Rotten ${m.rt ? m.rt + '%' : '--'}</span>
+          <span class="tag"><span class="streamLogo">${streamBadge(m.streaming[0])}</span></span>
+        </div>
+      </div>
+      <div class="scorePane">
+        <div class="quality">${m.quality}</div>
+        <div class="qualityLabel">${qualityLabel(m.quality)}</div>
+        <div class="thermo"><div class="fill" style="width:${m.quality}%"></div></div>
+      </div>
+    </div>
+
+    <div class="expand">
+      <div class="grid2">
+        <div class="panel">
+          <h3>📖 Sinopse</h3>
+          <div class="synopsis">${m.synopsis}</div>
+
+          <div class="actions">
+            <button class="watchToggle" onclick="event.stopPropagation(); toggleWatched('${m.title}', this)">Já assisti</button>
+            <a class="btn" href="${m.trailer}" target="_blank" rel="noopener">Ver trailer</a>
+            <a class="btn secondary" href="${m.google}" target="_blank" rel="noopener">Abrir Google</a>
+            <button class="secondaryAdd" onclick="event.stopPropagation(); openEditMovie(${JSON.stringify(m.title)})">Editar cadastro</button>
+            <button class="deleteBtn" onclick="event.stopPropagation(); promptDeleteMovie(${JSON.stringify(m.title)})">Remover título</button>
+          </div>
+
+          <div class="panel" style="margin-top:12px">
+            <h3>▶ Onde procurar para assistir</h3>
+            <div class="streams">${streams}</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>🌡️ Termômetro por categoria</h3>
+          <div class="bars">
+            <div class="barRow"><span>Família</span>${bar(m.family)}<b>${m.family}</b></div>
+            <div class="barRow"><span>Suspense</span>${bar(m.suspense)}<b>${m.suspense}</b></div>
+            <div class="barRow"><span>Impacto</span>${bar(m.impact)}<b>${m.impact}</b></div>
+          </div>
+
+          <div class="detailsGrid" style="margin-top:12px">
+            <div class="mini"><small>IMDb</small><strong>${m.imdb}</strong></div>
+            <div class="mini"><small>Rotten</small><strong>${m.rt ? m.rt + '%' : '--'}</strong></div>
+            <div class="mini"><small>Duração</small><strong>${m.duration}</strong></div>
+            <div class="mini"><small>Classificação</small><strong><span class="rating-badge rating-${m.rating}">${m.rating === "L" ? "Livre" : m.rating + " anos"}</span></strong></div>
+            <div class="mini"><small>Nudez</small><strong>${m.nudity}</strong></div>
+            <div class="mini"><small>Qualidade geral</small><strong>${m.quality}/100</strong></div>
+          </div>
+
+          <div class="userReviewSummary" style="margin-top:10px; display:none"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const imgEl = card.querySelector("img");
+  const fallbackEl = card.querySelector(".posterFallback");
+  if (m.poster) {
+    imgEl.referrerPolicy = "no-referrer";
+    imgEl.src = m.poster;
+    imgEl.style.display = "block";
+    fallbackEl.style.display = "none";
+    imgEl.onerror = () => loadPoster(m.wiki, imgEl, fallbackEl);
+  } else {
+    loadPoster(m.wiki, imgEl, fallbackEl);
+  }
+  return card;
+}
+
+function render(list) {
+  const root = document.getElementById("cards");
+  root.innerHTML = "";
+  getSortedMovies(list).forEach(m => root.appendChild(createCard(m)));
+  applyFilter();
+}
+
+function toggleCard(card) {
+  if(card.classList.contains("watched")){
+    card.classList.remove("open");
+    return;
+  }
+  card.classList.toggle("open");
+}
+
+function setQuickFilter(term) {
+  const input = document.getElementById("search");
+  input.value = term;
+  applyFilter();
+}
+
+function applyFilter() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const minFamily = Number(document.getElementById("filterFamily")?.value || 0);
+  const minSuspense = Number(document.getElementById("filterSuspense")?.value || 0);
+  const minImpact = Number(document.getElementById("filterImpact")?.value || 0);
+  const minQuality = Number(document.getElementById("filterQuality")?.value || 0);
+
+  const root = document.getElementById("cards");
+  const cards = [...root.querySelectorAll(".card")];
+  const normalizeTitle = (v) => cleanDisplayTitle(String(v || "")).trim().toLowerCase();
+
+  const visibleCards = [];
+  cards.forEach(card => {
+    const searchOk = !q || card.dataset.search.includes(q);
+    const title = card.querySelector("h2")?.innerText || "";
+    const movie = movies.find(m => normalizeTitle(m.title) === normalizeTitle(title));
+    if(!movie){ card.style.display = "none"; return; }
+
+    const d = getData()[movie.title] || {};
+    const watched = !!d.watched;
+    const viewOk = (currentViewMode === "watchlist" && !watched) || (currentViewMode === "watched" && watched);
+    const genreOk = currentGenreQuick === "Todos" || (movie.genre || "").toLowerCase().includes(currentGenreQuick.toLowerCase());
+    const familyOk = Number(movie.family || 0) >= minFamily;
+    const suspenseOk = Number(movie.suspense || 0) >= minSuspense;
+    const impactOk = Number(movie.impact || 0) >= minImpact;
+    const qualityOk = Number(movie.quality || 0) >= minQuality;
+
+    const show = searchOk && viewOk && genreOk && familyOk && suspenseOk && impactOk && qualityOk;
+    card.style.display = show ? "" : "none";
+    if(show) visibleCards.push({card, movie});
+  });
+
+  const sortedMovies = getSortedMovies(visibleCards.map(v => v.movie));
+  sortedMovies.forEach(movie => {
+    const found = visibleCards.find(v => normalizeTitle(v.movie.title) === normalizeTitle(movie.title));
+    if(found) root.appendChild(found.card);
+  });
+
+  updateStats();
+}
+
+
+function setTheme(mode) {
+  const body = document.body;
+  const themes = ["default","apple","netflix","hbomax","disney","prime","cinema"];
+  themes.forEach(t => body.classList.remove("theme-" + t));
+  body.classList.add("theme-" + mode);
+  localStorage.setItem("denerTheme", mode);
+}
+function openThemeSheet(){
+  ensureFloatingLayers();
+  document.getElementById("themeSheet").classList.add("open");
+  lockBody();
+}
+function closeThemeSheet(){
+  document.getElementById("themeSheet").classList.remove("open");
+  unlockBody();
+}
+function initTheme() {
+  const saved = localStorage.getItem("denerTheme") || "default";
+  setTheme(saved);
+}
+
+function getData(){
+  return JSON.parse(localStorage.getItem("denerData")||"{}");
+}
+function saveData(data){
+  localStorage.setItem("denerData", JSON.stringify(data));
+}
+let currentRatePromptTitle = "";
+let currentRatePromptValue = 0;
+
+function formatScore10(v){
+  return Number(v || 0).toFixed(1);
+}
+function wowMessage(v){
+  const n = Number(v || 0);
+  if(n >= 10) return "🔥 Nota máxima, você curtiu demais esse filme!";
+  if(n >= 9.5) return "🔥 Quase perfeito, filmão de respeito!";
+  if(n >= 8) return "🍿 Filmão, experiência muito boa.";
+  if(n >= 7) return "👍 Gostou bastante.";
+  if(n >= 5) return "🙂 Foi ok.";
+  return "🤔 Não te pegou tanto assim.";
+}
+function openRatePrompt(title){
+  ensureFloatingLayers();
+  currentRatePromptTitle = title;
+  const data = getData();
+  currentRatePromptValue = Number(data[title]?.rating || 0);
+  document.getElementById("ratePromptMovie").textContent = title;
+  document.getElementById("ratePromptComment").value = data[title]?.quickComment || "";
+  document.getElementById("ratePromptCount").textContent = `${document.getElementById("ratePromptComment").value.length}/250`;
+  const slider = document.getElementById("ratePromptSlider");
+  const valueEl = document.getElementById("ratePromptValue");
+  const perfect = document.getElementById("ratePerfect");
+  slider.value = currentRatePromptValue || 0;
+  valueEl.textContent = `${formatScore10(slider.value)} / 10`;
+  perfect.textContent = wowMessage(slider.value);
+  perfect.classList.toggle("show", Number(slider.value) >= 9.9);
+  slider.oninput = () => {
+    currentRatePromptValue = Number(slider.value);
+    valueEl.textContent = `${formatScore10(slider.value)} / 10`;
+    perfect.textContent = wowMessage(slider.value);
+    perfect.classList.toggle("show", Number(slider.value) >= 9.9);
+  };
+  document.getElementById("ratePrompt").classList.add("open");
+  lockBody();
+  window.scrollTo({top:0, behavior:"instant"});
+}
+function closeRatePrompt(){
+  document.getElementById("ratePrompt").classList.remove("open");
+  unlockBody();
+}
+function confirmRatePrompt(){
+  if(!currentRatePromptTitle) return closeRatePrompt();
+  const data = getData();
+  data[currentRatePromptTitle] = data[currentRatePromptTitle] || {};
+  data[currentRatePromptTitle].rating = Number((currentRatePromptValue || 0).toFixed(1));
+  data[currentRatePromptTitle].quickComment = (document.getElementById("ratePromptComment").value || "").slice(0,250);
+  saveData(data);
+  applyState();
+  closeRatePrompt();
+}
+function toggleWatched(title, el){
+  const data = getData();
+  data[title] = data[title]||{};
+  const newValue = !data[title].watched;
+  data[title].watched = newValue;
+  saveData(data);
+
+  const card = el ? el.closest(".card") : null;
+  if(card) card.classList.remove("open");
+
+  applyState();
+
+  if(newValue){
+    openRatePrompt(title);
+  } else {
+    closeRatePrompt();
+  }
+}
+function toggleWatchedFromOverlay(overlayEl){
+  const card = overlayEl.closest(".card");
+  const title = card?.querySelector("h2")?.innerText?.trim();
+  if(!title) return;
+  const data = getData();
+  data[title] = data[title] || {};
+  data[title].watched = false;
+  saveData(data);
+  card.classList.remove("watched");
+  card.classList.remove("open");
+  applyState();
+}
+function applyState(){
+  const data = getData();
+  document.querySelectorAll(".card").forEach(card=>{
+    const title = card.querySelector("h2")?.innerText;
+    if(!title) return;
+    const item = data[title] || {};
+    card.classList.toggle("watched", !!item.watched);
+
+    const watchBtn = card.querySelector(".watchToggle");
+    if(watchBtn) watchBtn.textContent = item.watched ? "Desmarcar" : "Já assisti";
+
+    const overlayLabel = card.querySelector(".watchedOverlay span");
+    if(overlayLabel){
+      const r = Number(item.rating || 0);
+      const comment = (item.quickComment || "").trim();
+      const width = Math.max(0, Math.min(100, r * 10));
+      const thermo = r > 0 ? `<div class="overlayThermo"><div class="overlayThermoFill" style="width:${width}%"></div></div>` : "";
+      const commentLine = comment ? `<div class="overlayComment">${comment}</div>` : "";
+      overlayLabel.innerHTML = item.watched
+        ? (`<div class="overlayTitle">JÁ ASSISTIDO</div>${thermo}${r > 0 ? `<div class="overlayNote">Sua nota: ${formatScore10(r)} / 10, toque para desmarcar</div>` : `<div class="overlayNote">Toque para desmarcar</div>`}${commentLine}`)
+        : "JÁ ASSISTIDO";
+    }
+
+    const reviewBox = card.querySelector(".userReviewSummary");
+    if(reviewBox){
+      const r = Number(item.rating || 0);
+      const comment = (item.quickComment || "").trim();
+      if(r > 0 || comment){
+        reviewBox.style.display = "block";
+        reviewBox.innerHTML = `<div class="reviewSummaryBox">
+          <strong>Sua avaliação</strong>
+          ${r > 0 ? `<div class="userScoreThermo"><div class="userScoreLabel">${formatScore10(r)} / 10</div><div class="userScoreBar"><div class="userScoreFill" style="width:${Math.max(0, Math.min(100, r*10))}%"></div></div><div class="userScoreWow">${wowMessage(r)}</div></div>` : ``}
+          ${comment ? `<div class="reviewSummaryText">${comment}</div>` : ``}
+        </div>`;
+      } else {
+        reviewBox.style.display = "none";
+        reviewBox.innerHTML = "";
+      }
+    }
+  });
+}
+
+function showSavedMessage(scopeEl, text="Salvo com sucesso"){
+  let target = scopeEl?.closest(".noteBox")?.querySelector(".saveStatus");
+  if(!target && scopeEl){
+    target = scopeEl.parentElement?.querySelector(".saveStatus");
+  }
+  if(target){
+    target.textContent = text;
+    setTimeout(() => {
+      target.textContent = "Salvamento automático ativado";
+    }, 1800);
+  }
+}
+function updateNote(title, el){
+  const data = getData();
+  data[title] = data[title]||{};
+  data[title].note = el.value;
+  saveData(data);
+  showSavedMessage(el, "Salvo automaticamente");
+}
+function saveNow(title, el){
+  const card = el.closest(".card");
+  const textarea = card?.querySelector(".noteArea");
+  const data = getData();
+  data[title] = data[title]||{};
+  data[title].note = textarea ? textarea.value : (data[title].note || "");
+  saveData(data);
+  showSavedMessage(el, "Salvo com sucesso");
+}
+
+function exportData(){
+  const payload = {
+    version: 6.1,
+    exportedAt: new Date().toISOString(),
+    theme: localStorage.getItem("denerTheme") || "default",
+    userData: getData(),
+    customMovies: getCustomMovies(),
+    movieOverrides: getMovieOverrides()
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "filmes_dener_backup_v6.json";
+  a.click();
+}
+function importData(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(parsed.userData || parsed.customMovies){
+        localStorage.setItem("denerData", JSON.stringify(parsed.userData || {}));
+        localStorage.setItem("denerCustomMovies", JSON.stringify(parsed.customMovies || []));
+        localStorage.setItem("denerMovieOverrides", JSON.stringify(parsed.movieOverrides || {}));
+        if(parsed.theme) localStorage.setItem("denerTheme", parsed.theme);
+      }else{
+        localStorage.setItem("denerData", e.target.result);
+      }
+      mergeMovies();
+      initTheme();
+      render(movies);
+      applyState();
+    }catch(err){
+      alert("Não consegui importar esse arquivo.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+mergeMovies();
+initTheme();
+render(movies); setTimeout(()=>{ ensureFloatingLayers(); applyState(); },200);
+document.getElementById("search").addEventListener("input", applyFilter);
+document.getElementById("ratePromptComment").addEventListener("input", function(){ document.getElementById("ratePromptCount").textContent = `${this.value.length}/250`; });
+document.getElementById("sourceInput").addEventListener("input", ()=>{ if(!getField("f_title").value) document.getElementById("autoFillStatus").textContent = "Cole um nome ou link e toque em Preencher automaticamente."; });
+document.getElementById("gptCodeInput").addEventListener("input", ()=>{ if(getField("gptCodeInput").value.trim()) document.getElementById("gptCodeStatus").textContent = "Código detectado. Toque em Ler código GPT para preencher."; });
+["f_title","f_genre","f_duration","f_quality","f_rating","f_poster"].forEach(id=>document.getElementById(id).addEventListener("input", updatePreview));
+["f_imdb","f_rt","f_synopsis","f_streaming","f_family","f_suspense","f_impact"].forEach(id=>document.getElementById(id).addEventListener("input", ()=>{recalculateFromForm(); updatePreview();}));
+document.getElementById("f_rating").addEventListener("change", function(){ this.dataset.manual="1"; updatePreview(); });
+document.getElementById("f_nudity").addEventListener("change", function(){ this.dataset.manual="1"; });
+["filterFamily","filterSuspense","filterImpact","filterQuality"].forEach(id=>{
+  const el = document.getElementById(id);
+  const val = document.getElementById(id + "Val");
+  if(el && val){
+    el.addEventListener("input", ()=>{ val.textContent = el.value; applyFilter(); });
+  }
+});
+</script>
+</body>
+</html>
